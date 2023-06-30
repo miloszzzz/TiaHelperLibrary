@@ -17,7 +17,7 @@ namespace OpennessConsole
 
         static void Main(string[] args)
         {
-            TiaHandling tiaProject = new TiaHandling(0);
+            TiaHandling tiaProject = new TiaHandling();
 
             TiaPortal tiaPortal = tiaProject.process.Attach();
 
@@ -28,6 +28,10 @@ namespace OpennessConsole
             //tiaProject.ShowAllElements(plcSoftware);
 
             tiaProject.showProgramStructure(plcSoftware);
+
+            //CreatePlcTagTableUserGroup(plcSoftware);
         }
+
+
     }
 }

@@ -21,6 +21,7 @@ using Siemens.Engineering.SW.ExternalSources;
 using Siemens.Engineering.SW.Types;
 using System.Collections.ObjectModel;
 using OpennessConsole.Models;
+using System.Runtime.InteropServices;
 
 namespace OpennessConsole
 {
@@ -88,9 +89,13 @@ namespace OpennessConsole
                     return;
                 }
             }
-            else
+            else if (i > 0)
             {
                 selectedProcess = 0;
+            }
+            else
+            {
+                throw new Exception("Tia process not found");
             }
             
             process = processes[selectedProcess];
@@ -200,6 +205,19 @@ namespace OpennessConsole
                     }
                 }
             }
+        }
+
+        /// <summary>
+        /// Creates group of tag tables
+        /// ToDo options to create subgroups
+        /// </summary>
+        /// <param name="plcSoftware">plcSoftware process</param>
+        /// <param name="groupName">Name of group to create</param>
+        public static void CreatePlcTagTableUserGroup(PlcSoftware plcSoftware, string groupName)
+        {
+            PlcTagTableSystemGroup systemGroup = plcSoftware.TagTableGroup;
+            PlcTagTableUserGroupComposition groupComposition = systemGroup.Groups;
+            PlcTagTableUserGroup myCreatedGroup = groupComposition.Create(groupName);
         }
 
 
