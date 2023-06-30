@@ -46,6 +46,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Enums\DefGroups.cs" />
+    <Compile Include="Models\Elements\Group.cs" />
+    <Compile Include="Models\Elements\ProjectElement.cs" />
+    <Compile Include="Models\Group\GroupOperations.cs" />
     <Compile Include="Models\SubLevel.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

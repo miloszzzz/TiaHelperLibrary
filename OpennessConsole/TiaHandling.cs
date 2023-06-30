@@ -55,6 +55,7 @@ namespace OpennessConsole
         }
 
 
+        #region Connecting to TIA
         /// <summary>
         /// Default function for selecting tia process.
         /// If theres only 1 process then no user input is needed
@@ -150,20 +151,7 @@ namespace OpennessConsole
         {
             return GetPlcSoftware(tiaPortal, false);
         }
-
-
-        /// <summary>
-        /// Displaying composition informations
-        /// </summary>
-        /// <param name="obj"></param>
-        public void DisplayCompositionInfos(IEngineeringObject obj)
-        {
-            IList<EngineeringCompositionInfo> compositionInfos = obj.GetCompositionInfos();
-            foreach (EngineeringCompositionInfo compositionInfo in compositionInfos)
-            {
-                Console.WriteLine(compositionInfo.Name);
-            }
-        }
+        #endregion
 
 
         /// <summary>
@@ -207,6 +195,7 @@ namespace OpennessConsole
             }
         }
 
+
         /// <summary>
         /// Creates group of tag tables
         /// ToDo options to create subgroups
@@ -221,6 +210,7 @@ namespace OpennessConsole
         }
 
 
+        #region Getting program structure
         /// <summary>
         /// Prints blocks in main group and then call recursive function
         /// </summary>
@@ -255,8 +245,10 @@ namespace OpennessConsole
                 nestLevel.PrevLeveL();
             }
         }
+        #endregion
 
 
+        #region Getting all elements
         /// <summary>
         /// Prints groups and blocks
         /// </summary>
@@ -459,6 +451,21 @@ namespace OpennessConsole
             }
 
             return subFolder as IEnumerable<object>;
+        }
+        #endregion
+
+
+        /// <summary>
+        /// Displaying composition informations
+        /// </summary>
+        /// <param name="obj"></param>
+        public void DisplayCompositionInfos(IEngineeringObject obj)
+        {
+            IList<EngineeringCompositionInfo> compositionInfos = obj.GetCompositionInfos();
+            foreach (EngineeringCompositionInfo compositionInfo in compositionInfos)
+            {
+                Console.WriteLine(compositionInfo.Name);
+            }
         }
 
 
