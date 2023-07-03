@@ -22,6 +22,10 @@ using Siemens.Engineering.SW.Types;
 using System.Collections.ObjectModel;
 using OpennessConsole.Models;
 using System.Runtime.InteropServices;
+using OpennessConsole.Models.Elements;
+using System.ComponentModel;
+using OpennessConsole.Enums;
+using System.Text.RegularExpressions;
 
 namespace OpennessConsole
 {
@@ -231,7 +235,7 @@ namespace OpennessConsole
         /// </summary>
         /// <param name="groupComposition">Subgroup</param>
         /// <param name="nestLevel">saves sublevel</param>
-        private void programStructureRecursive(PlcBlockUserGroupComposition groupComposition, SubLevel nestLevel)
+        public void programStructureRecursive(PlcBlockUserGroupComposition groupComposition, SubLevel nestLevel)
         {
             foreach (PlcBlockGroup blockGroup in groupComposition)
             {
@@ -453,6 +457,90 @@ namespace OpennessConsole
             return subFolder as IEnumerable<object>;
         }
         #endregion
+
+
+        #region Finding system group
+        /// <summary>
+        /// Finds defalut philogic block user group eg. !!!!!Functions
+        /// </summary>
+        /// <param name="mainBlockGroup">Program blocks</param>
+        /// <param name="defGroup">eg. !!!!!Functions defined in def groups</param>
+        /// <returns>Default philogic group or null</returns>
+        public PlcBlockUserGroup GetDefaultGroup(PlcBlockSystemGroup mainBlockGroup, DefGroup defGroup)
+        {
+            PlcBlockUserGroup plcSystemGroup = null;
+
+            
+            string groupName = GetTypeDescription(defGroup);
+
+            //Console.WriteLine(groupName);
+
+            if (groupName != null) 
+            {
+                plcSystemGroup = mainBlockGroup.Groups.Find(groupName);
+            }
+
+            return plcSystemGroup;
+        }
+
+        /// <summary>
+        /// Get description of defined program element
+        /// </summary>
+        /// <param name="defGroup">Group from DefGroup enum</param>
+        /// <returns>String with group name</returns>
+        private string GetTypeDescription(DefGroup defGroup)
+        {
+            Type enumType = typeof(DefGroup);
+
+            var groupInfo = enumType.GetField(defGroup.ToString());
+            var attribute = groupInfo.GetCustomAttributes(typeof(DescriptionAttribute), false);
+            var description = (DescriptionAttribute)attribute[0];
+
+            return description.Description;
+        }
+
+        #endregion
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="mainBlockGroup"></param>
+        /// <returns></returns>
+        public Collection<PlcBlock> GetSequencesBlocks(PlcBlockSystemGroup mainBlockGroup)
+        {
+            PlcBlockUserGroup sequencesGroup = GetDefaultGroup(mainBlockGroup, DefGroup.Sequences);
+            Console.WriteLine(sequencesGroup.Name);
+            Collection<PlcBlock> sequences = new Collection<PlcBlock>();
+
+            RecursiveGetSeqBlocks(sequencesGroup, ref sequences);
+            
+            return sequences;
+        }
+
+        
+        private static void RecursiveGetSeqBlocks(PlcBlockUserGroup group, ref Collection<PlcBlock> sequences)
+        {
+
+            string pattern = @"(Step\w*)|(DB\w*)|((FC|FB)\w*(Handling))";
+            // Setting flag RegexOptions.IgnoreCase and RegexOptions.Multiline
+            RegexOptions options = RegexOptions.IgnoreCase | RegexOptions.Multiline;
+            foreach (PlcBlock block in group.Blocks)
+            {
+                
+                if ( !( Regex.IsMatch(block.Name, pattern, options) ) )
+                {
+                    sequences.Add(block);
+                    //Console.WriteLine(block.Name);
+                }
+                
+            }
+
+            foreach (PlcBlockUserGroup userGroup in group.Groups)
+            {
+                RecursiveGetSeqBlocks(userGroup, ref sequences);
+                //Console.WriteLine(userGroup.Name);
+            }
+        }
 
 
         /// <summary>

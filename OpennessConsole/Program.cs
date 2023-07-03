@@ -9,6 +9,8 @@ using Siemens.Engineering.HW.Features;
 using Siemens.Engineering.SW;
 using Siemens.Engineering.SW.Tags;
 using Siemens.Engineering.SW.Blocks;
+using OpennessConsole.Models;
+using System.Collections.ObjectModel;
 
 namespace OpennessConsole
 {
@@ -27,9 +29,19 @@ namespace OpennessConsole
 
             //tiaProject.ShowAllElements(plcSoftware);
 
-            tiaProject.showProgramStructure(plcSoftware);
+            //tiaProject.showProgramStructure(plcSoftware);
 
             //CreatePlcTagTableUserGroup(plcSoftware);
+
+            //PlcBlockUserGroup sequencesGroup = tiaProject.GetDefaultGroup(plcSoftware.BlockGroup, Enums.DefGroup.Sequences);
+
+            Collection<PlcBlock> sequences = tiaProject.GetSequencesBlocks(plcSoftware.BlockGroup);
+
+            foreach (PlcBlock sequence in sequences)
+            {
+                Console.WriteLine(sequence.Name);
+            }
+
         }
 
 

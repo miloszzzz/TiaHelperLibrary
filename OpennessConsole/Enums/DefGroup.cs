@@ -10,7 +10,7 @@ namespace OpennessConsole.Enums
     /// <summary>
     /// Default Philogic groups
     /// </summary>
-    public enum DefGroups
+    public enum DefGroup
     {
         [Description("!!!!!Functions")]
         Functions,
