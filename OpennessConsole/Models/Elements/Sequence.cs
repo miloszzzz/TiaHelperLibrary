@@ -6,9 +6,8 @@ using System.Threading.Tasks;
 
 namespace OpennessConsole.Models.Elements
 {
-    public class ProjectElement
+    public class Sequence : ProjectElement
     {
-        public string Name { get; set; }
-        public int Id { get; set; }
+        List<Step> Steps  = new List<Step> ();
     }
 }

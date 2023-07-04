@@ -26,12 +26,14 @@ using OpennessConsole.Models.Elements;
 using System.ComponentModel;
 using OpennessConsole.Enums;
 using System.Text.RegularExpressions;
+using System.Globalization;
 
 namespace OpennessConsole
 {
     internal class TiaHandling
     {
         public TiaPortalProcess process { get; set; }
+        private Project project;
 
         /// <summary>
         /// Connecting to the process
@@ -102,7 +104,6 @@ namespace OpennessConsole
             {
                 throw new Exception("Tia process not found");
             }
-            
             process = processes[selectedProcess];
             return;
         }
@@ -119,6 +120,7 @@ namespace OpennessConsole
         {
             ProjectComposition projectComposition = tiaPortal.Projects;
             SoftwareContainer softwareContainer;
+            project = projectComposition[0];
 
             foreach (Project project in projectComposition)
             {
@@ -502,14 +504,14 @@ namespace OpennessConsole
         #endregion
 
         /// <summary>
-        /// 
+        /// Finds sequence blocks
         /// </summary>
-        /// <param name="mainBlockGroup"></param>
-        /// <returns></returns>
+        /// <param name="mainBlockGroup">Group with sequences</param>
+        /// <returns>Collection of sequences blocks</returns>
         public Collection<PlcBlock> GetSequencesBlocks(PlcBlockSystemGroup mainBlockGroup)
         {
             PlcBlockUserGroup sequencesGroup = GetDefaultGroup(mainBlockGroup, DefGroup.Sequences);
-            Console.WriteLine(sequencesGroup.Name);
+            //Console.WriteLine(sequencesGroup.Name);
             Collection<PlcBlock> sequences = new Collection<PlcBlock>();
 
             RecursiveGetSeqBlocks(sequencesGroup, ref sequences);
@@ -532,7 +534,6 @@ namespace OpennessConsole
                     sequences.Add(block);
                     //Console.WriteLine(block.Name);
                 }
-                
             }
 
             foreach (PlcBlockUserGroup userGroup in group.Groups)
@@ -542,6 +543,20 @@ namespace OpennessConsole
             }
         }
 
+
+        public List<CultureInfo> GetProjectCultures()
+        {
+            List<CultureInfo> cultureList = new List<CultureInfo>();
+
+            LanguageSettings languageSettings = project.LanguageSettings;
+            LanguageAssociation activeLanguages = languageSettings.ActiveLanguages;
+            foreach (Language lang in activeLanguages)
+            {
+                cultureList.Add(lang.Culture);
+            }
+
+            return cultureList;
+        }
 
         /// <summary>
         /// Displaying composition informations
