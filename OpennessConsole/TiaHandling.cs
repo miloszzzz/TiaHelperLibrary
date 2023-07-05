@@ -544,6 +544,10 @@ namespace OpennessConsole
         }
 
 
+        /// <summary>
+        /// Get list of active languages
+        /// </summary>
+        /// <returns></returns>
         public List<CultureInfo> GetProjectCultures()
         {
             List<CultureInfo> cultureList = new List<CultureInfo>();

@@ -18,6 +18,7 @@ using OpennessConsole.Models.Elements;
 using System.Collections;
 using System.CodeDom.Compiler;
 using System.Globalization;
+using System.Xml.Serialization;
 
 namespace OpennessConsole
 {
@@ -59,31 +60,78 @@ namespace OpennessConsole
                 }
             }*/
 
-            List<XElement> sequencesXml = new List<XElement>();
+            List<Stream> sequencesXml = new List<Stream>();
 
             foreach (PlcBlock sequence in sequencesBlocks)
             {
                 string tempFilePath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString(), sequence.Name, ".xml");
                 FileInfo tempFileInfo = new FileInfo(tempFilePath);
+                
 
                 sequence.Export(tempFileInfo, ExportOptions.WithDefaults);
 
-                sequencesXml.Add(XElement.Load(tempFilePath));
+                FileStream xmlStream = new FileStream(tempFilePath, FileMode.Open);
+                sequencesXml.Add(xmlStream);
 
-                tempFileInfo.Delete();
+                //xmlStream.Close();
+            }
+
+            var mySerializer = new XmlSerializer(typeof(Document));
+            
+            var sequenceFc = (Document)mySerializer.Deserialize(sequencesXml[0]);
+
+
+            List<object> objectsFromXml = new List<object>();
+
+            foreach (object item in sequenceFc.SWBlocksFC.ObjectList.Items)
+            {
+                /*if (item is DocumentSWBlocksFCObjectLi)
+                {
+                    objectsFromXml.Add(item as DocumentSWBlocksFCObjectListMultilingualText);
+                }*/
+                objectsFromXml.Add(item);
+            }
+
+            foreach (object obj in objectsFromXml)
+            {
+                if (obj is DocumentSWBlocksFCObjectListSWBlocksCompileUnit)
+                {
+                    DocumentSWBlocksFCObjectListSWBlocksCompileUnit compileUnit = obj as DocumentSWBlocksFCObjectListSWBlocksCompileUnit;
+                    foreach(DocumentSWBlocksFCObjectListSWBlocksCompileUnitMultilingualText oobj in compileUnit.ObjectList)
+                    {
+                        foreach (DocumentSWBlocksFCObjectListSWBlocksCompileUnitMultilingualTextMultilingualTextItem ooobj in oobj.ObjectList)
+                        {
+                            if (ooobj.AttributeList.Culture == CultureInfo.GetCultureInfo("en-US").Name 
+                                && ooobj.AttributeList.Text.Length > 0)
+                            {
+                                Console.WriteLine(ooobj.AttributeList.Text);
+                            }
+                        }
+                    }
+                }
             }
 
             //XmlSeq.RecursivePrintTexts(sequencesXml[0]);
 
-            List<CultureInfo> cultures = tiaProject.GetProjectCultures();
-            List<XElement> sequenceTexts = new List<XElement>();
+            //List<CultureInfo> cultures = tiaProject.GetProjectCultures();
 
-            sequenceTexts = XmlSeq.GetSequenceTexts(sequencesXml[0], cultures);
+            //List<Sequence> sequenceTexts = XmlSeq.GetSequenceTexts(sequencesXml[0], cultures);
             
-            foreach (XElement sequenceText in sequenceTexts)
+            
+            /*foreach (Step step in sequenceTexts[0].Steps)
             {
-                XmlSeq.RecursivePrintTexts(sequenceText);
-            }
+                Console.Write($"\n{step.Id}: {step.Name}");
+                if (step.NextSteps.Count > 0)
+                {
+                    for (int i = 0; i < step.NextSteps.Count; i++)
+                    {
+                        if (i == 0) Console.Write(" -> ");
+                        Console.Write(step.NextSteps[i]);
+                        if (i != step.NextSteps.Count - 1) Console.Write(" / ");
+                    }                    
+                }
+                Console.WriteLine();
+            }*/
             
             //string tabs = "";
             //XmlSeq.RecursivePrintXmlElements(sequencesXml[0], tabs);

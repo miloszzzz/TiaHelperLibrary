@@ -51,6 +51,7 @@
     <Compile Include="Enums\DefLanguages.cs" />
     <Compile Include="Models\Elements\Group.cs" />
     <Compile Include="Models\Elements\ProjectElement.cs" />
+    <Compile Include="Models\Elements\SeqFC.cs" />
     <Compile Include="Models\Elements\Sequence.cs" />
     <Compile Include="Models\Elements\Step.cs" />
     <Compile Include="Models\Group\GroupOperations.cs" />

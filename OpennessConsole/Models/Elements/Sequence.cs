@@ -8,6 +8,7 @@ namespace OpennessConsole.Models.Elements
 {
     public class Sequence : ProjectElement
     {
-        List<Step> Steps  = new List<Step> ();
+        public List<Step> Steps = new List<Step>();
+        
     }
 }
