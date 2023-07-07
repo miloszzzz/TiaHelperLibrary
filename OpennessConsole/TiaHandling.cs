@@ -128,7 +128,7 @@ namespace OpennessConsole
 
                 foreach (Device device in project.Devices)
                 {
-                    if (writeInConsole) Console.WriteLine("\t {device.Name}");
+                    if (writeInConsole && device.TypeIdentifier.Contains("1500")) Console.WriteLine($"\t {device.TypeIdentifier}");
 
                     foreach (DeviceItem deviceItem in device.DeviceItems)
                     {
@@ -542,6 +542,48 @@ namespace OpennessConsole
                 //Console.WriteLine(userGroup.Name);
             }
         }
+
+
+        /*public PlcBlock GetBlockByName(PlcBlockSystemGroup mainBlockGroup, string name)
+        {
+            foreach
+        }*/
+
+        public PlcBlockGroup GetGroupByBlockName(PlcBlockGroup blockGroup, string blockName)
+        {
+            PlcBlock plcBlock = blockGroup.Blocks.FirstOrDefault(block => block.Name == blockName);
+            if (plcBlock != null) return blockGroup;
+            else
+            {
+                foreach (PlcBlockGroup plcBlockGroup in blockGroup.Groups)
+                {
+                    //Console.WriteLine(plcBlockGroup.Name);
+                    PlcBlockGroup resultGroup = GetGroupByBlockName(plcBlockGroup, blockName);
+                    if (resultGroup != null) return resultGroup;
+                }
+            }
+
+            return null;
+        }
+
+
+        public PlcBlockGroup GetGroupByGroupName(PlcBlockGroup blockGroup, string groupName)
+        {
+            PlcBlockGroup plcBlockGroup = blockGroup.Groups.FirstOrDefault(group => group.Name == groupName);
+            Console.WriteLine(plcBlockGroup.Name);
+            if (plcBlockGroup != null) return plcBlockGroup;
+            else
+            {
+                foreach (PlcBlockGroup subBlockGroup in blockGroup.Groups)
+                {
+                    Console.WriteLine(subBlockGroup.Name);
+                    PlcBlockGroup resultGroup = GetGroupByGroupName(subBlockGroup, groupName);
+                    if (resultGroup != null) return resultGroup;
+                }
+            }
+            return null;
+        }
+
 
 
         /// <summary>
