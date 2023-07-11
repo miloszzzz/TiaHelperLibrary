@@ -19,6 +19,7 @@ using System.Collections;
 using System.CodeDom.Compiler;
 using System.Globalization;
 using System.Xml.Serialization;
+using System.Xml;
 
 namespace OpennessConsole
 {
@@ -50,15 +51,73 @@ namespace OpennessConsole
 
             if (groupWithActuators != null)
             {
-                OpenFileDialog op = new OpenFileDialog();
+                /*OpenFileDialog op = new OpenFileDialog();
                 if (op.ShowDialog() == DialogResult.OK)
                 {
                     FileInfo fileInfo = new FileInfo(op.FileName);
                     groupWithActuators.Blocks.Import(fileInfo, ImportOptions.None, SWImportOptions.IgnoreStructuralChanges);
+                }*/
+
+                // Read file as Stream and create Xml handling class
+                FileStream xmlStream = new FileStream("FC_ActuatorsModel.xml", FileMode.Open);
+                var mySerializer = new XmlSerializer(typeof(Document));
+
+                // Return deserialized document as Document object
+                Document fcBlock = (Document)mySerializer.Deserialize(xmlStream);
+                xmlStream.Close();
+
+                // OPERATIONS ON DOCUMENT !!!
+                foreach (object item in fcBlock.SWBlocksFC.ObjectList.Items)
+                {
+                    DocumentSWBlocksFCObjectListSWBlocksCompileUnit compileUnit = new DocumentSWBlocksFCObjectListSWBlocksCompileUnit();
+                    if (item.GetType() == compileUnit.GetType()) 
+                    {
+                        compileUnit = (DocumentSWBlocksFCObjectListSWBlocksCompileUnit)item;
+                        DocumentSWBlocksFCObjectListSWBlocksCompileUnitAttributeListNetworkSource network = compileUnit.AttributeList.NetworkSource;
+                        foreach (FlgNetWire wire in network.FlgNet.Wires)
+                        {
+                            foreach (object wireItem in wire.Items)
+                            {
+                                Console.WriteLine(wireItem.ToString());
+                            }
+                        }
+                    }
                 }
-            }
+
+
+                ///======================================
+                /// SERIALISING XML AND IMPORTING FILE
+                /*
+                string tempFolderPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
+                string tempFilePath = Path.Combine(tempFolderPath, "FC_Actuator" + ".xml");
+                Directory.CreateDirectory(tempFolderPath);
+
+                FileStream newStream = new FileStream(tempFilePath, FileMode.CreateNew);
+                
+                mySerializer.Serialize(newStream, fcBlock);
+                newStream.Close();
+
+                FileInfo fcFileInfo = new FileInfo(tempFilePath);
+                
+                groupWithActuators.Blocks.Import(fcFileInfo, ImportOptions.None, SWImportOptions.IgnoreStructuralChanges);
+                */
+                ///=========================================
+                ///
+
+
+                /* 
+                // Create path for temporary file
+                string tempFilePath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString(), "FC_Actuator", ".xml");
+                FileInfo tempFileInfo = new FileInfo(tempFilePath);
+
+                XmlWriter.Create(tempFilePath,  fcBlock);*/
+            }            
+            //FileInfo fileInfo = new FileInfo("FC_Actuator.xml");
+
+            
             
 
+            
 
 
             //tiaProject.ShowAllTags(plcSoftware);
@@ -89,6 +148,7 @@ namespace OpennessConsole
             }*/
 
 
+            // Getting list of cultures
             /*List<CultureInfo> cultures = tiaProject.GetProjectCultures();
 
             List<Sequence> sequences = XmlSeq.GetSequence(sequencesBlocks[0], cultures);*/
