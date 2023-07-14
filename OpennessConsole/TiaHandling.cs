@@ -173,6 +173,7 @@ namespace OpennessConsole
                 foreach (PlcTag plcTag in plcTagTable.Tags)
                 {
                     Console.WriteLine($"\tTag:\t{plcTag.Name}\t\t\t{plcTag.DataTypeName}\t{plcTag.LogicalAddress}");
+                    
                 }
 
                 foreach (PlcUserConstant plcUserConstant in plcTagTable.UserConstants)

@@ -35,6 +35,8 @@ namespace OpennessConsole
 
             PlcSoftware plcSoftware = tiaProject.GetPlcSoftware(tiaPortal, true);
 
+
+            /*
             PlcBlockGroup groupWithActuators = tiaProject.GetGroupByBlockName(plcSoftware.BlockGroup, "FC_Actuators");
             if (groupWithActuators == null)
             {
@@ -56,7 +58,7 @@ namespace OpennessConsole
                 {
                     FileInfo fileInfo = new FileInfo(op.FileName);
                     groupWithActuators.Blocks.Import(fileInfo, ImportOptions.None, SWImportOptions.IgnoreStructuralChanges);
-                }*/
+                }
 
                 // Read file as Stream and create Xml handling class
                 FileStream xmlStream = new FileStream("FC_ActuatorsModel.xml", FileMode.Open);
@@ -82,8 +84,8 @@ namespace OpennessConsole
                             }
                         }
                     }
-                }
-
+                }*/
+                
 
                 ///======================================
                 /// SERIALISING XML AND IMPORTING FILE
@@ -110,17 +112,17 @@ namespace OpennessConsole
                 string tempFilePath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString(), "FC_Actuator", ".xml");
                 FileInfo tempFileInfo = new FileInfo(tempFilePath);
 
-                XmlWriter.Create(tempFilePath,  fcBlock);*/
+                XmlWriter.Create(tempFilePath,  fcBlock);
             }            
             //FileInfo fileInfo = new FileInfo("FC_Actuator.xml");
-
+                */
             
             
 
             
 
 
-            //tiaProject.ShowAllTags(plcSoftware);
+            tiaProject.ShowAllTags(plcSoftware);
 
             //tiaProject.ShowAllElements(plcSoftware);
 
