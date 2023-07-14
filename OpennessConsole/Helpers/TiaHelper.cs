@@ -21,16 +21,15 @@ using Siemens.Engineering.SW.ExternalSources;
 using Siemens.Engineering.SW.Types;
 using System.Collections.ObjectModel;
 using OpennessConsole.Models;
-using System.Runtime.InteropServices;
-using OpennessConsole.Models.Elements;
 using System.ComponentModel;
 using OpennessConsole.Enums;
 using System.Text.RegularExpressions;
 using System.Globalization;
+using TiaXmlGenerator.Models;
 
 namespace OpennessConsole
 {
-    internal class TiaHandling
+    internal class TiaHelper
     {
         public TiaPortalProcess process { get; set; }
         private Project project;
@@ -38,7 +37,7 @@ namespace OpennessConsole
         /// <summary>
         /// Connecting to the process
         /// </summary>
-        public TiaHandling() 
+        public TiaHelper() 
         { 
             SelectProcess();
         }
@@ -47,7 +46,7 @@ namespace OpennessConsole
         /// Connecting to the process selected by it's index
         /// </summary>
         /// <param name="id">Index of process</param>
-        public TiaHandling(int id)
+        public TiaHelper(int id)
         {
             IList<TiaPortalProcess> processes;
             processes = TiaPortal.GetProcesses();
@@ -116,47 +115,51 @@ namespace OpennessConsole
         /// <param name="tiaPortal"></param>
         /// <param name="writeInConsole">Flag for writing scan information</param>
         /// <returns></returns>
-        public PlcSoftware GetPlcSoftware(TiaPortal tiaPortal, bool writeInConsole)
+        public PlcSoftware GetPlcSoftware(TiaPortal tiaPortal)
         {
             ProjectComposition projectComposition = tiaPortal.Projects;
             SoftwareContainer softwareContainer;
             project = projectComposition[0];
 
-            foreach (Project project in projectComposition)
-            {
-                if (writeInConsole) Console.WriteLine($"Project: {project.Name}");
+            return GetPlcSoftware();
+        }
 
-                foreach (Device device in project.Devices)
-                {
-                    if (writeInConsole && device.TypeIdentifier.Contains("1500")) Console.WriteLine($"\t {device.TypeIdentifier}");
 
-                    foreach (DeviceItem deviceItem in device.DeviceItems)
-                    {
-                        if (writeInConsole && deviceItem.TypeIdentifier != null) Console.WriteLine("\t\t" + deviceItem.TypeIdentifier);
-                        
-                        softwareContainer = ((IEngineeringServiceProvider)deviceItem).GetService<SoftwareContainer>();
+        public PlcSoftware GetPlcSoftware()
+        {
+            // find first PLC device
+            Device device = project.Devices.FirstOrDefault(d => CheckIfPlc(d));
 
-                        if (softwareContainer != null && softwareContainer.Software is PlcSoftware)
-                        {
-                            if (writeInConsole) Console.WriteLine($"\t\t\tPlcProgram: {softwareContainer.Software.Name}");
-                            return softwareContainer.Software as PlcSoftware;
-                        }
-                    }
-                }
-            }
-            return null;
+            // first PLCs device item is rack
+            DeviceItem deviceItem = device.Items[0];
+            SoftwareContainer softwareContainer;
+
+            // Only deviceitem with software is PLC
+            DeviceItem item = deviceItem.Items.FirstOrDefault(i => (i.GetService<SoftwareContainer>() != null));
+
+            // Get service & soft
+            softwareContainer = item.GetService<SoftwareContainer>();
+
+            return (PlcSoftware)softwareContainer.Software;
         }
 
 
         /// <summary>
-        /// Overload which doesnt writes information
+        /// Checking the name of Device
         /// </summary>
-        /// <param name="tiaPortal"></param>
+        /// <param name="device"></param>
         /// <returns></returns>
-        public PlcSoftware GetPlcSoftware(TiaPortal tiaPortal)
+        public bool CheckIfPlc(Device device)
         {
-            return GetPlcSoftware(tiaPortal, false);
+            if (device.TypeIdentifier.Contains("1500") ||
+                device.TypeIdentifier.Contains("1200") ||
+                device.TypeIdentifier.Contains("ET200"))
+            {
+                return true;
+            }
+            return false;
         }
+
         #endregion
 
 
@@ -173,6 +176,7 @@ namespace OpennessConsole
                 foreach (PlcTag plcTag in plcTagTable.Tags)
                 {
                     Console.WriteLine($"\tTag:\t{plcTag.Name}\t\t\t{plcTag.DataTypeName}\t{plcTag.LogicalAddress}");
+                    
                 }
 
                 foreach (PlcUserConstant plcUserConstant in plcTagTable.UserConstants)
@@ -202,6 +206,62 @@ namespace OpennessConsole
         }
 
 
+        public void GetTagsConstantsLists(PlcSoftware plcSoftware, ref List<PlcTag> tags, ref List<PlcConstant> constants)
+        {
+
+            PlcTagTableSystemGroup plcTagTableSystemGroup = plcSoftware.TagTableGroup;
+
+            foreach (PlcTagTable plcTagTable in plcTagTableSystemGroup.TagTables)
+            {
+                foreach (PlcTag plcTag in plcTagTable.Tags)
+                {
+                    tags.Add(plcTag);
+                }
+
+                foreach (PlcConstant plcConstant in plcTagTable.UserConstants)
+                {
+                    constants.Add(plcConstant);
+                }
+            }
+
+            foreach (PlcTagTableGroup plcTagTableGroup in plcTagTableSystemGroup.Groups)
+            {
+                GetListRecurence(plcTagTableGroup, ref tags, ref constants);
+            }
+            
+        }
+
+        /// <summary>
+        /// Recurrence used by GetTagsList method
+        /// </summary>
+        /// <param name="tagTableGroup"></param>
+        /// <param name="tags"></param>
+        /// <param name="constants"></param>
+        private void GetListRecurence(PlcTagTableGroup tagTableGroup, ref List<PlcTag> tags, ref List<PlcConstant> constants)
+        {
+            foreach (PlcTagTable plcTagTable in tagTableGroup.TagTables)
+            {
+                foreach (PlcTag plcTag in plcTagTable.Tags)
+                {
+                    tags.Add(plcTag);
+                }
+
+                foreach (PlcConstant plcConstant in plcTagTable.UserConstants)
+                {
+                    constants.Add(plcConstant);
+                }
+            }
+
+            foreach (PlcTagTableGroup plcTagTableGroup in tagTableGroup.Groups)
+            {
+                GetListRecurence(plcTagTableGroup, ref tags, ref constants);
+            }
+        }
+
+
+
+
+
         /// <summary>
         /// Creates group of tag tables
         /// ToDo options to create subgroups
@@ -215,6 +275,118 @@ namespace OpennessConsole
             PlcTagTableUserGroup myCreatedGroup = groupComposition.Create(groupName);
         }
 
+
+        public static List<int> FindNumbersInString(string input)
+        {
+            List<int> numbers = new List<int>();
+
+            // Wyrażenie regularne dopasowujące liczby całkowite w tekście
+            string pattern = @"-?\d+"; // Dopasowanie liczb całkowitych, w tym liczby ujemne
+
+            // Utworzenie obiektu Regex i dopasowanie wzorca do tekstu
+            Regex regex = new Regex(pattern);
+            MatchCollection matches = regex.Matches(input);
+
+            // Przetwarzanie dopasowanych wyników i dodawanie ich do listy liczb
+            foreach (Match match in matches)
+            {
+                if (int.TryParse(match.Value, out int number))
+                {
+                    numbers.Add(number);
+                }
+            }
+
+            return numbers;
+        }
+
+
+        /// <summary>
+        /// Function checks if tag name belong to actuator
+        /// </summary>
+        /// <param name="expression"></param>
+        /// <param name="tag"></param>
+        /// <param name="actuators"></param>
+        /// <returns>True if tag was assigned</returns>
+        private static bool TryAssignTag(string expression, PlcTag tag, Dictionary<int, Actuator> actuators, EnumActTag tagType)
+        {
+            RegexOptions options = RegexOptions.IgnoreCase;
+            Regex regex = new Regex(expression, options);
+
+            if (regex.IsMatch(tag.Name))
+            {
+                int pos = tag.Name.IndexOf('Y');
+                List<int> nums = FindNumbersInString(tag.Name.Substring(pos));
+
+                if (nums.Count <= 0) return false;
+                if (actuators.ContainsKey(nums[0]))
+                {
+                    switch(tagType)
+                    {
+                        case EnumActTag.InputRet:
+                            actuators[nums[0]].InputRetract = tag.Name;
+                            return true;
+
+                        case EnumActTag.InputExt:
+                            actuators[nums[0]].InputExtend = tag.Name;
+                            return true;
+
+                        case EnumActTag.OutputRet:
+                            
+                            actuators[nums[0]].OutputRetract = tag.Name;
+                            return true;
+
+                        case EnumActTag.OutputExt:
+                            actuators[nums[0]].OutputExtend = tag.Name;
+                            return true;
+
+                        default:
+                            return false;
+                    }
+                }
+            }
+            return false;
+        }
+
+       
+        public static void AssingTagsToActuators(Dictionary<int, Actuator> actuators, List<PlcTag> tags)
+        {
+            string retract = "Ret";
+            string extend = "Ext";
+            string input = "I_ActY";
+            string output = "Q_";
+
+            string expression = "";
+
+            // Input retract
+            foreach (PlcTag tag in tags)
+            {
+                expression = input + @"\d*" + retract + @"[\s\S]*";
+                if (TryAssignTag(expression, tag, actuators, EnumActTag.InputRet)) continue;
+
+                expression = input + @"\d*" + extend + @"[\s\S]*";
+                if (TryAssignTag(expression, tag, actuators, EnumActTag.InputExt)) continue;
+
+                expression = output + @"[\s\S]*Y\d{1,3}_" + retract + @"[\s\S]*";
+                if (TryAssignTag(expression, tag, actuators, EnumActTag.OutputRet))
+                {
+                    continue;
+                }
+                else
+                {
+                    string asdf = tag.Name;
+                }
+
+                expression = output + @"[\s\S]*Y\d{1,3}_" + extend + @"[\s\S]*";
+                if (TryAssignTag(expression, tag, actuators, EnumActTag.OutputExt))
+                {
+                    continue;
+                }
+                else
+                {
+                    string asdff = tag.Name;
+                }
+            }
+        }
 
         #region Getting program structure
         /// <summary>
@@ -544,11 +716,6 @@ namespace OpennessConsole
         }
 
 
-        /*public PlcBlock GetBlockByName(PlcBlockSystemGroup mainBlockGroup, string name)
-        {
-            foreach
-        }*/
-
         public PlcBlockGroup GetGroupByBlockName(PlcBlockGroup blockGroup, string blockName)
         {
             PlcBlock plcBlock = blockGroup.Blocks.FirstOrDefault(block => block.Name == blockName);
@@ -570,13 +737,13 @@ namespace OpennessConsole
         public PlcBlockGroup GetGroupByGroupName(PlcBlockGroup blockGroup, string groupName)
         {
             PlcBlockGroup plcBlockGroup = blockGroup.Groups.FirstOrDefault(group => group.Name == groupName);
-            Console.WriteLine(plcBlockGroup.Name);
+            //Console.WriteLine(plcBlockGroup.Name);
             if (plcBlockGroup != null) return plcBlockGroup;
             else
             {
                 foreach (PlcBlockGroup subBlockGroup in blockGroup.Groups)
                 {
-                    Console.WriteLine(subBlockGroup.Name);
+                    //Console.WriteLine(subBlockGroup.Name);
                     PlcBlockGroup resultGroup = GetGroupByGroupName(subBlockGroup, groupName);
                     if (resultGroup != null) return resultGroup;
                 }

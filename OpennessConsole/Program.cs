@@ -2,24 +2,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Siemens.Engineering.HW;
-using Siemens.Engineering.HW.Features;
 using Siemens.Engineering.SW;
 using Siemens.Engineering.SW.Tags;
-using Siemens.Engineering.SW.Blocks;
-using OpennessConsole.Models;
-using System.Collections.ObjectModel;
-using System.Windows.Forms;
+using TiaXmlGenerator.Models;
+using System.Text.RegularExpressions;
+using TiaXmlGenerator.Helpers;
 using System.IO;
-using System.Xml.Linq;
-using OpennessConsole.Models.Elements;
-using System.Collections;
-using System.CodeDom.Compiler;
-using System.Globalization;
-using System.Xml.Serialization;
-using System.Xml;
+using Siemens.Engineering.SW.Blocks;
 
 namespace OpennessConsole
 {
@@ -29,209 +18,148 @@ namespace OpennessConsole
         [STAThread]
         static void Main(string[] args)
         {
-            TiaHandling tiaProject = new TiaHandling();
+            TiaHelper tiaProject = new TiaHelper();
 
             TiaPortal tiaPortal = tiaProject.process.Attach();
 
-            PlcSoftware plcSoftware = tiaProject.GetPlcSoftware(tiaPortal, true);
+            PlcSoftware plcSoftware = tiaProject.GetPlcSoftware(tiaPortal);
 
-            PlcBlockGroup groupWithActuators = tiaProject.GetGroupByBlockName(plcSoftware.BlockGroup, "FC_Actuators");
-            if (groupWithActuators == null)
-            {
-                Console.WriteLine("sadf");
-                groupWithActuators = tiaProject.GetGroupByGroupName(plcSoftware.BlockGroup, "!!!Devices");
-                Console.WriteLine(groupWithActuators.Name);
-                groupWithActuators = tiaProject.GetGroupByGroupName(groupWithActuators, "Actuators");
-            }
-            else
-            {
-                PlcBlock actuators = groupWithActuators.Blocks.FirstOrDefault(block => block.Name == "FC_Actuators");
-                actuators.Delete();
-            }
+            List<PlcTag> Tags = new List<PlcTag>();
+            List<PlcConstant> Constants = new List<PlcConstant>();
 
-            if (groupWithActuators != null)
-            {
-                /*OpenFileDialog op = new OpenFileDialog();
-                if (op.ShowDialog() == DialogResult.OK)
-                {
-                    FileInfo fileInfo = new FileInfo(op.FileName);
-                    groupWithActuators.Blocks.Import(fileInfo, ImportOptions.None, SWImportOptions.IgnoreStructuralChanges);
-                }*/
+            tiaProject.GetTagsConstantsLists(plcSoftware, ref Tags, ref Constants);
 
-                // Read file as Stream and create Xml handling class
-                FileStream xmlStream = new FileStream("FC_ActuatorsModel.xml", FileMode.Open);
-                var mySerializer = new XmlSerializer(typeof(Document));
+            string expression = @"^Y\d{1,3}";
+            Regex regex = new Regex(expression);
+            var ActuatorsConstants = Constants.Where(c => regex.IsMatch(c.Name));
+      
 
-                // Return deserialized document as Document object
-                Document fcBlock = (Document)mySerializer.Deserialize(xmlStream);
-                xmlStream.Close();
+            expression = @"\w*Y\d{1,3}\w*";
+            regex = new Regex(expression);
 
-                // OPERATIONS ON DOCUMENT !!!
-                foreach (object item in fcBlock.SWBlocksFC.ObjectList.Items)
-                {
-                    DocumentSWBlocksFCObjectListSWBlocksCompileUnit compileUnit = new DocumentSWBlocksFCObjectListSWBlocksCompileUnit();
-                    if (item.GetType() == compileUnit.GetType()) 
-                    {
-                        compileUnit = (DocumentSWBlocksFCObjectListSWBlocksCompileUnit)item;
-                        DocumentSWBlocksFCObjectListSWBlocksCompileUnitAttributeListNetworkSource network = compileUnit.AttributeList.NetworkSource;
-                        foreach (FlgNetWire wire in network.FlgNet.Wires)
-                        {
-                            foreach (object wireItem in wire.Items)
-                            {
-                                Console.WriteLine(wireItem.ToString());
-                            }
-                        }
-                    }
-                }
-
-
-                ///======================================
-                /// SERIALISING XML AND IMPORTING FILE
-                /*
-                string tempFolderPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
-                string tempFilePath = Path.Combine(tempFolderPath, "FC_Actuator" + ".xml");
-                Directory.CreateDirectory(tempFolderPath);
-
-                FileStream newStream = new FileStream(tempFilePath, FileMode.CreateNew);
-                
-                mySerializer.Serialize(newStream, fcBlock);
-                newStream.Close();
-
-                FileInfo fcFileInfo = new FileInfo(tempFilePath);
-                
-                groupWithActuators.Blocks.Import(fcFileInfo, ImportOptions.None, SWImportOptions.IgnoreStructuralChanges);
-                */
-                ///=========================================
-                ///
-
-
-                /* 
-                // Create path for temporary file
-                string tempFilePath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString(), "FC_Actuator", ".xml");
-                FileInfo tempFileInfo = new FileInfo(tempFilePath);
-
-                XmlWriter.Create(tempFilePath,  fcBlock);*/
-            }            
-            //FileInfo fileInfo = new FileInfo("FC_Actuator.xml");
-
-            
-            
-
-            
-
-
-            //tiaProject.ShowAllTags(plcSoftware);
-
-            //tiaProject.ShowAllElements(plcSoftware);
-
-            //tiaProject.showProgramStructure(plcSoftware);
-
-            //CreatePlcTagTableUserGroup(plcSoftware);
-
-            //PlcBlockUserGroup sequencesGroup = tiaProject.GetDefaultGroup(plcSoftware.BlockGroup, Enums.DefGroup.Sequences);
-
-            //Collection<PlcBlock> sequencesBlocks = tiaProject.GetSequencesBlocks(plcSoftware.BlockGroup);
-
-
-            /*
-             Exporting file
-            FolderBrowserDialog b = new FolderBrowserDialog();
-
-            if (b.ShowDialog() == DialogResult.OK)
-            {
-                string folderName = b.SelectedPath;
-
-                foreach (PlcBlock sequence in sequences)
-                {                    
-                    sequence.Export(new FileInfo($"{folderName}\\{sequence.Name}.xml"), ExportOptions.WithDefaults);
-                }
-            }*/
-
-
-            // Getting list of cultures
-            /*List<CultureInfo> cultures = tiaProject.GetProjectCultures();
-
-            List<Sequence> sequences = XmlSeq.GetSequence(sequencesBlocks[0], cultures);*/
-
-
-
-
-
-            //XmlSeq.RecursivePrintTexts(sequencesXml[0]);
-
-            //List<Sequence> sequenceTexts = XmlSeq.GetSequenceTexts(sequencesXml[0], cultures);
-
-            /*
-            foreach (Sequence sequence in sequences)
-            {
-                Console.Write(sequence.Language);
-                foreach (Step step in sequence.Steps)
-                {
-                    Console.Write($"\n{step.Id}: {step.Name}");
-                    if (step.NextSteps.Count > 0)
-                    {
-                        for (int i = 0; i < step.NextSteps.Count; i++)
-                        {
-                            if (i == 0) Console.Write(" -> ");
-                            Console.Write(step.NextSteps[i]);
-                            if (i != step.NextSteps.Count - 1) Console.Write(" / ");
-                        }
-                    }
-                }
-                Console.WriteLine();
-            }
-            Task<Sequence> translateTask = XmlSeq.TranslateSequence(sequences[0], sequences[1].Language);
-            translateTask.Wait();
-            sequences[1] = translateTask.Result;
-            //sequences[1].Steps = sequences[0].Steps;
-
-            foreach (Sequence sequence in sequences)
-            {
-                Console.Write(sequence.Language);
-                foreach (Step step in sequence.Steps)
-                {
-                    Console.Write($"\n{step.Id}: {step.Name}");
-                    if (step.NextSteps.Count > 0)
-                    {
-                        for (int i = 0; i < step.NextSteps.Count; i++)
-                        {
-                            if (i == 0) Console.Write(" -> ");
-                            Console.Write(step.NextSteps[i]);
-                            if (i != step.NextSteps.Count - 1) Console.Write(" / ");
-                        }
-                    }
-                }
-                Console.WriteLine();
-            }*/
-
-            //string tabs = "";
-            //XmlSeq.RecursivePrintXmlElements(sequencesXml[0], tabs);
-
-            /*List<Sequence> sequences = new List<Sequence>();
-
-            for (int i = 0; i < sequencesXml.Count; i++)
-            {
-                Sequence seq = new Sequence();
-                sequences.Add(seq);
-
-                sequencesXml[i].Descendants("SW.Blocks.FC").
-            }*/
-            /*foreach (XElement seqXml in sequencesXml)
-            {
-                foreach (XElement xElement in seqXml.Elements())
-                {
-                    Console.WriteLine(xElement.Name);
-
-                    foreach (XElement subElement in xElement.Elements())
-                    {
-                        Console.WriteLine("\t" + subElement.Name);
+            Dictionary<int, Actuator> Actuators = new Dictionary<int, Actuator>();
+            List<PlcTag> ActuatorsTags = Tags.Where(t => regex.IsMatch(t.Name)).ToList();
 
                         
-                    }
-                }
-            }*/
-        }
+            foreach ( PlcConstant c in ActuatorsConstants)
+            {
+                //Console.WriteLine(c.Name);
+                Actuator actuator = new Actuator();
 
-        
-    }
+                actuator.Name = c.Name;
+                actuator.Constant = int.Parse(c.Value);
+                                
+                List<int> numbersInName = TiaHelper.FindNumbersInString(c.Name);
+
+                if (numbersInName.Count > 0) actuator.Number = numbersInName[0];
+                else continue;
+
+                //expression = $"^I_ActY\d{1,3}Ret";
+
+                int st = 0;
+                int.TryParse(c.Name.Substring(1, 1), out st);
+                actuator.Station = st >= 1 ? (EnumStations)st-1 : 0;
+                Actuators.Add(actuator.Number, actuator);
+            }
+
+
+            TiaHelper.AssingTagsToActuators(Actuators, ActuatorsTags);
+
+
+            // File to export
+            //string xmlFilePath = Path.GetTempFileName() + ".Xml";
+            string xmlFilePath = Environment.CurrentDirectory + "Actuators.Xml";
+            string xmlContant = XmlHelper.Header.Contant;
+            string tempConatant = string.Empty;
+
+            // Xml header elements - 11
+            int id = 12;
+
+            // ADD NETWORKS
+            // Adding actuators
+
+            foreach (KeyValuePair<int, Actuator> act in Actuators)
+            {
+                tempConatant = XmlHelper.Movement.Contant;
+
+                tempConatant = XmlHelper.InsertActuator(tempConatant, act.Value, ref id);
+
+                xmlContant += tempConatant;
+            }
+
+
+            // Adding comment subnet
+            Comment parametersComment = new Comment("--------------------Parameters--------------------");
+            tempConatant = XmlHelper.Comment.Contant;
+            tempConatant = XmlHelper.InsertComment(tempConatant, parametersComment);
+            tempConatant = XmlHelper.InsertIds(tempConatant, ref id);
+            xmlContant += tempConatant;
+
+
+            // Adding safety network
+            tempConatant = XmlHelper.Safety.Contant;
+            tempConatant = XmlHelper.InsertIds(tempConatant, ref id);
+            xmlContant += tempConatant;
+
+
+            // Adding parameters networks
+            foreach (KeyValuePair<int, Actuator> act in Actuators)
+            {
+                tempConatant = XmlHelper.Parameters.Contant;
+
+                tempConatant = XmlHelper.InsertActuator(tempConatant, act.Value, ref id);
+
+                xmlContant += tempConatant;
+            }
+
+
+            // Adding handling network
+            tempConatant = XmlHelper.Handling.Contant;
+            tempConatant = XmlHelper.InsertIds(tempConatant, ref id);
+            xmlContant += tempConatant;
+
+
+            // Adding outputs network
+            foreach (KeyValuePair<int, Actuator> act in Actuators)
+            {
+                // Outputs template
+                tempConatant = XmlHelper.Outputs.Contant;
+
+                tempConatant = XmlHelper.InsertActuator(tempConatant, act.Value, ref id);
+
+                xmlContant += tempConatant;
+            }
+
+
+            // Adding footer
+            xmlContant += XmlHelper.Footer.Contant;
+
+            File.WriteAllText(xmlFilePath, xmlContant);
+
+            PlcBlock asdfGroup;
+
+
+            // Check if !!!Devices folder exists
+            PlcBlockGroup devicesGroup;
+            devicesGroup = tiaProject.GetGroupByGroupName(plcSoftware.BlockGroup, "!!!Devices");
+            if (devicesGroup == null )
+            {
+                devicesGroup = plcSoftware.BlockGroup.Groups.Create("!!!Devices");
+            }
+
+
+            // Check if actuators folder exists
+            PlcBlockGroup actuatorsGroup;
+            actuatorsGroup = tiaProject.GetGroupByGroupName(devicesGroup, "Actuators");
+            if (actuatorsGroup == null )
+            {
+                actuatorsGroup = devicesGroup.Groups.Create("Actuators");
+            }
+
+
+            // Import generated block
+            SWImportOptions importOptions = SWImportOptions.None;
+            actuatorsGroup.Blocks.Import(new FileInfo(xmlFilePath), ImportOptions.Override, importOptions);
+        }
+    }    
 }
