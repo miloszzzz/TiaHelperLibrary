@@ -28,7 +28,7 @@ namespace ActuatorsGenerator
         }
 
 
-        static void ActuatorsBlockGenerate(PlcSoftware plcSoftware)
+        static void ActuatorsBlockGenerator(PlcSoftware plcSoftware)
         {
             List<PlcTag> Tags = new List<PlcTag>();
             List<PlcConstant> Constants = new List<PlcConstant>();
