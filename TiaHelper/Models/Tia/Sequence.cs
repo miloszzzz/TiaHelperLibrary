@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ActuatorsGenerator.Models.Elements
+namespace TiaHelper.Models.Elements
 {
     public class Sequence : ProjectElement
     {

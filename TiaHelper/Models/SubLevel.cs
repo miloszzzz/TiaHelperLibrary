@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ActuatorsGenerator.Models
+namespace TiaHelper.Models
 {
     public class SubLevel
     {

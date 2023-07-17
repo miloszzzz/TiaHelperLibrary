@@ -7,8 +7,8 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{CC7091C9-C59E-42BC-9AE6-308382545EFF}</ProjectGuid>
     <OutputType>Exe</OutputType>
-    <RootNamespace>ActuatorsGenerator</RootNamespace>
-    <AssemblyName>ActuatorsGenerator</AssemblyName>
+    <RootNamespace>TiaHelper</RootNamespace>
+    <AssemblyName>TiaHelper</AssemblyName>
     <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
@@ -139,6 +139,8 @@
     <Compile Include="Enums\DefGroup.cs" />
     <Compile Include="Enums\DefLanguages.cs" />
     <Compile Include="Enums\EnumActTag.cs" />
+    <Compile Include="Enums\EnumStations.cs" />
+    <Compile Include="Models\Tia\Actuator.cs" />
     <Compile Include="Models\Tia\Group.cs" />
     <Compile Include="Models\Tia\ProjectElement.cs" />
     <Compile Include="Models\Tia\SeqFC.cs" />

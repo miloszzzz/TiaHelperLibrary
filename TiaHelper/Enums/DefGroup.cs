@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ActuatorsGenerator.Enums
+namespace TiaHelper.Enums
 {
     /// <summary>
     /// Default Philogic groups
