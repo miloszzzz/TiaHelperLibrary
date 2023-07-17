@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace OpennessConsole.Models.Elements
+namespace ActuatorsGenerator.Models.Elements
 {
     public class ProjectElement
     {

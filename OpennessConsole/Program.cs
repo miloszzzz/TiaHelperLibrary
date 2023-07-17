@@ -10,7 +10,7 @@ using TiaXmlGenerator.Helpers;
 using System.IO;
 using Siemens.Engineering.SW.Blocks;
 
-namespace OpennessConsole
+namespace ActuatorsGenerator
 {
     internal class Program
     {
@@ -18,21 +18,27 @@ namespace OpennessConsole
         [STAThread]
         static void Main(string[] args)
         {
-            TiaHelper tiaProject = new TiaHelper();
+            TiaHelper tiaProject = new TiaHelper(true);
 
             TiaPortal tiaPortal = tiaProject.process.Attach();
 
             PlcSoftware plcSoftware = tiaProject.GetPlcSoftware(tiaPortal);
 
+            ActuatorsBlockGenerate(plcSoftware);
+        }
+
+
+        static void ActuatorsBlockGenerate(PlcSoftware plcSoftware)
+        {
             List<PlcTag> Tags = new List<PlcTag>();
             List<PlcConstant> Constants = new List<PlcConstant>();
 
-            tiaProject.GetTagsConstantsLists(plcSoftware, ref Tags, ref Constants);
+            TiaHelper.GetTagsConstantsLists(plcSoftware, ref Tags, ref Constants);
 
             string expression = @"^Y\d{1,3}";
             Regex regex = new Regex(expression);
             var ActuatorsConstants = Constants.Where(c => regex.IsMatch(c.Name));
-      
+
 
             expression = @"\w*Y\d{1,3}\w*";
             regex = new Regex(expression);
@@ -40,15 +46,15 @@ namespace OpennessConsole
             Dictionary<int, Actuator> Actuators = new Dictionary<int, Actuator>();
             List<PlcTag> ActuatorsTags = Tags.Where(t => regex.IsMatch(t.Name)).ToList();
 
-                        
-            foreach ( PlcConstant c in ActuatorsConstants)
+
+            foreach (PlcConstant c in ActuatorsConstants)
             {
                 //Console.WriteLine(c.Name);
                 Actuator actuator = new Actuator();
 
                 actuator.Name = c.Name;
                 actuator.Constant = int.Parse(c.Value);
-                                
+
                 List<int> numbersInName = TiaHelper.FindNumbersInString(c.Name);
 
                 if (numbersInName.Count > 0) actuator.Number = numbersInName[0];
@@ -58,7 +64,7 @@ namespace OpennessConsole
 
                 int st = 0;
                 int.TryParse(c.Name.Substring(1, 1), out st);
-                actuator.Station = st >= 1 ? (EnumStations)st-1 : 0;
+                actuator.Station = st >= 1 ? (EnumStations)st - 1 : 0;
                 Actuators.Add(actuator.Number, actuator);
             }
 
@@ -67,8 +73,8 @@ namespace OpennessConsole
 
 
             // File to export
-            //string xmlFilePath = Path.GetTempFileName() + ".Xml";
-            string xmlFilePath = Environment.CurrentDirectory + "Actuators.Xml";
+            string xmlFilePath = Path.GetTempFileName() + ".Xml";
+            //string xmlFilePath = Environment.CurrentDirectory + "Actuators.Xml";
             string xmlContant = XmlHelper.Header.Contant;
             string tempConatant = string.Empty;
 
@@ -136,13 +142,11 @@ namespace OpennessConsole
 
             File.WriteAllText(xmlFilePath, xmlContant);
 
-            PlcBlock asdfGroup;
-
 
             // Check if !!!Devices folder exists
             PlcBlockGroup devicesGroup;
-            devicesGroup = tiaProject.GetGroupByGroupName(plcSoftware.BlockGroup, "!!!Devices");
-            if (devicesGroup == null )
+            devicesGroup = TiaHelper.GetGroupByGroupName(plcSoftware.BlockGroup, "!!!Devices");
+            if (devicesGroup == null)
             {
                 devicesGroup = plcSoftware.BlockGroup.Groups.Create("!!!Devices");
             }
@@ -150,8 +154,8 @@ namespace OpennessConsole
 
             // Check if actuators folder exists
             PlcBlockGroup actuatorsGroup;
-            actuatorsGroup = tiaProject.GetGroupByGroupName(devicesGroup, "Actuators");
-            if (actuatorsGroup == null )
+            actuatorsGroup = TiaHelper.GetGroupByGroupName(devicesGroup, "Actuators");
+            if (actuatorsGroup == null)
             {
                 actuatorsGroup = devicesGroup.Groups.Create("Actuators");
             }

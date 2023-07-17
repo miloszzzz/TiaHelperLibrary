@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace OpennessConsole.Models
+namespace ActuatorsGenerator.Models
 {
-    internal class SubLevel
+    public class SubLevel
     {
         private int level = 0;
 

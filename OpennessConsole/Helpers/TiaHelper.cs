@@ -20,16 +20,17 @@ using Siemens.Engineering.Library;
 using Siemens.Engineering.SW.ExternalSources;
 using Siemens.Engineering.SW.Types;
 using System.Collections.ObjectModel;
-using OpennessConsole.Models;
+using ActuatorsGenerator.Models;
 using System.ComponentModel;
-using OpennessConsole.Enums;
+using ActuatorsGenerator.Enums;
 using System.Text.RegularExpressions;
 using System.Globalization;
 using TiaXmlGenerator.Models;
+using System.ComponentModel.Design;
 
-namespace OpennessConsole
+namespace ActuatorsGenerator
 {
-    internal class TiaHelper
+    public class TiaHelper
     {
         public TiaPortalProcess process { get; set; }
         private Project project;
@@ -37,9 +38,9 @@ namespace OpennessConsole
         /// <summary>
         /// Connecting to the process
         /// </summary>
-        public TiaHelper() 
+        public TiaHelper(bool getProcess) 
         { 
-            SelectProcess();
+            if (getProcess) SelectProcess();
         }
 
         /// <summary>
@@ -56,7 +57,6 @@ namespace OpennessConsole
                 Console.WriteLine(ex.Message);
                 return;
             }
-            
         }
 
 
@@ -206,7 +206,7 @@ namespace OpennessConsole
         }
 
 
-        public void GetTagsConstantsLists(PlcSoftware plcSoftware, ref List<PlcTag> tags, ref List<PlcConstant> constants)
+        public static void GetTagsConstantsLists(PlcSoftware plcSoftware, ref List<PlcTag> tags, ref List<PlcConstant> constants)
         {
 
             PlcTagTableSystemGroup plcTagTableSystemGroup = plcSoftware.TagTableGroup;
@@ -228,7 +228,6 @@ namespace OpennessConsole
             {
                 GetListRecurence(plcTagTableGroup, ref tags, ref constants);
             }
-            
         }
 
         /// <summary>
@@ -237,7 +236,7 @@ namespace OpennessConsole
         /// <param name="tagTableGroup"></param>
         /// <param name="tags"></param>
         /// <param name="constants"></param>
-        private void GetListRecurence(PlcTagTableGroup tagTableGroup, ref List<PlcTag> tags, ref List<PlcConstant> constants)
+        private static void GetListRecurence(PlcTagTableGroup tagTableGroup, ref List<PlcTag> tags, ref List<PlcConstant> constants)
         {
             foreach (PlcTagTable plcTagTable in tagTableGroup.TagTables)
             {
@@ -734,7 +733,7 @@ namespace OpennessConsole
         }
 
 
-        public PlcBlockGroup GetGroupByGroupName(PlcBlockGroup blockGroup, string groupName)
+        public static PlcBlockGroup GetGroupByGroupName(PlcBlockGroup blockGroup, string groupName)
         {
             PlcBlockGroup plcBlockGroup = blockGroup.Groups.FirstOrDefault(group => group.Name == groupName);
             //Console.WriteLine(plcBlockGroup.Name);

@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace OpennessConsole.Enums
+namespace ActuatorsGenerator.Enums
 {
     /// <summary>
     /// Default Philogic groups
