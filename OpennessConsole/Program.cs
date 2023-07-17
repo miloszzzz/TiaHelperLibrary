@@ -24,7 +24,7 @@ namespace ActuatorsGenerator
 
             PlcSoftware plcSoftware = tiaProject.GetPlcSoftware(tiaPortal);
 
-            ActuatorsBlockGenerate(plcSoftware);
+            ActuatorsBlockGenerator(plcSoftware);
         }
 
 
