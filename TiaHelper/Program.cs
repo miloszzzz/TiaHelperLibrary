@@ -7,8 +7,9 @@ using Siemens.Engineering.SW.Tags;
 using System.Text.RegularExpressions;
 using System.IO;
 using Siemens.Engineering.SW.Blocks;
+using Siemens.Engineering.Hmi;
 
-namespace TiaHelper
+namespace TiaHelperLibrary
 {
     internal class Program
     {
@@ -25,6 +26,8 @@ namespace TiaHelper
             // Get software in project
             PlcSoftware plcSoftware = tiaProject.GetPlcSoftware(tiaPortal);
 
+            HmiTarget hmiTarget = tiaProject.GetHmiTarget(tiaPortal);
+            Console.WriteLine(hmiTarget.Name);
         }
     }    
 }

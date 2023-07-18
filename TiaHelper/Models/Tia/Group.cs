@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace TiaHelper.Models.Elements
+namespace TiaHelperLibrary.Models.Elements
 {
     public class Group : ProjectElement
     {

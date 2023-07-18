@@ -20,13 +20,14 @@ using Siemens.Engineering.Library;
 using Siemens.Engineering.SW.ExternalSources;
 using Siemens.Engineering.SW.Types;
 using System.Collections.ObjectModel;
-using TiaHelper.Models;
+using TiaHelperLibrary.Models;
 using System.ComponentModel;
-using TiaHelper.Enums;
+using TiaHelperLibrary.Enums;
 using System.Text.RegularExpressions;
 using System.Globalization;
+using TiaXmlGenerator.Models;
 
-namespace TiaHelper
+namespace TiaHelperLibrary
 {
     public class TiaHelper
     {
@@ -157,6 +158,40 @@ namespace TiaHelper
             }
             return false;
         }
+
+
+        public HmiTarget GetHmiTarget(TiaPortal tiaPortal)
+        {
+            foreach (Device dev in tiaPortal.Projects[0].Devices)
+            {
+                //Console.WriteLine(dev.DeviceItems.Count);
+                DeviceItem deviceItem = GetHmiDeviceItem(dev);
+                if (deviceItem != null)
+                {
+                    SoftwareContainer softwareContainer = deviceItem.GetService<SoftwareContainer>();
+                    if (softwareContainer == null) continue;
+
+                    HmiTarget hmi = softwareContainer.Software as HmiTarget;
+                    if (hmi != null) return hmi;
+                }
+            }
+
+            return null;
+        }
+
+
+        public DeviceItem GetHmiDeviceItem(Device device)
+        { 
+            /*foreach (DeviceItem devi in device.DeviceItems)
+            {
+                Console.WriteLine(devi.Name + "\t" + devi.TypeIdentifier);
+                hmiDevi = devi;
+            }*/
+            DeviceItem devi = device.DeviceItems.FirstOrDefault(d => d.Name.Contains("HMI"));
+            //if (devi != null) Console.WriteLine(devi.Name);
+            return devi;
+        }
+
 
         #endregion
 
