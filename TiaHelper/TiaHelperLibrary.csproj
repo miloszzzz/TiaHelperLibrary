@@ -7,8 +7,8 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{CC7091C9-C59E-42BC-9AE6-308382545EFF}</ProjectGuid>
     <OutputType>Library</OutputType>
-    <RootNamespace>TiaHelper</RootNamespace>
-    <AssemblyName>TiaHelper</AssemblyName>
+    <RootNamespace>TiaHelperLibrary</RootNamespace>
+    <AssemblyName>TiaHelperLibrary</AssemblyName>
     <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>

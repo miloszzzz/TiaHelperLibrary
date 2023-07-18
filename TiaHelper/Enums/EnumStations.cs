@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace TiaHelper.Enums
+namespace TiaHelperLibrary.Enums
 {
     public enum EnumStations
     {

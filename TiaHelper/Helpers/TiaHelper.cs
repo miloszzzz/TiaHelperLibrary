@@ -20,13 +20,14 @@ using Siemens.Engineering.Library;
 using Siemens.Engineering.SW.ExternalSources;
 using Siemens.Engineering.SW.Types;
 using System.Collections.ObjectModel;
-using TiaHelper.Models;
+using TiaHelperLibrary.Models;
 using System.ComponentModel;
-using TiaHelper.Enums;
+using TiaHelperLibrary.Enums;
 using System.Text.RegularExpressions;
 using System.Globalization;
+using TiaXmlGenerator.Models;
 
-namespace TiaHelper
+namespace TiaHelperLibrary
 {
     public class TiaHelper
     {

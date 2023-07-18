@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace TiaHelper.Enums
+namespace TiaHelperLibrary.Enums
 {
     internal enum DefLanguages
     {

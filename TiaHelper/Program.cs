@@ -8,7 +8,7 @@ using System.Text.RegularExpressions;
 using System.IO;
 using Siemens.Engineering.SW.Blocks;
 
-namespace TiaHelper
+namespace TiaHelperLibrary
 {
     internal class Program
     {
