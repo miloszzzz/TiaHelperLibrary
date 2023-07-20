@@ -803,6 +803,28 @@ namespace TiaHelperLibrary
             return cultureList;
         }
 
+
+        public static string NewBlockNameIfExist(string blockName, PlcBlockGroup blockGroup)
+        {
+            int nameSuflex = 1;
+            string name = blockName;
+
+            while (true)
+            {
+                PlcBlock block = blockGroup.Blocks.Find(name);
+                if (block == null)
+                {
+                    return name;
+                }
+
+                if (block.Name == name)
+                {
+                    name = $"{blockName}_{nameSuflex++}";
+                }
+                else return name;
+            }
+        }
+
         /// <summary>
         /// Displaying composition informations
         /// </summary>
