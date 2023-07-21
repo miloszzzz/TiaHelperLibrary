@@ -26,6 +26,7 @@ using TiaHelperLibrary.Enums;
 using System.Text.RegularExpressions;
 using System.Globalization;
 using TiaXmlGenerator.Models;
+using DeepL;
 
 namespace TiaHelperLibrary
 {
@@ -824,6 +825,8 @@ namespace TiaHelperLibrary
                 else return name;
             }
         }
+
+
 
         /// <summary>
         /// Displaying composition informations
