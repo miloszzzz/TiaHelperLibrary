@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace TiaHelperLibrary.Models.Elements
+namespace TiaHelperLibrary.Models.Tia
 {
     public class ProjectElement
     {

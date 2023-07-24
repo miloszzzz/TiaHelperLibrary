@@ -41,6 +41,7 @@ namespace TiaHelperLibrary
         public TiaHelper(bool getProcess) 
         { 
             if (getProcess) SelectProcess();
+            var asdf = Siemens.Engineering.ConfirmationChoices.Abort;
         }
 
         /// <summary>

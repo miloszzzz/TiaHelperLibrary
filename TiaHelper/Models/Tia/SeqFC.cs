@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace TiaHelperLibrary.Models.Elements
+namespace TiaHelperLibrary.Models.Tia
 {
     // UWAGA: Wygenerowany kod może wymagać co najmniej programu .NET Framework 4.5 lub .NET Core/Standard 2.0.
     /// <remarks/>
