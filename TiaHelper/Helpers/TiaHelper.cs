@@ -27,6 +27,7 @@ using System.Text.RegularExpressions;
 using System.Globalization;
 using TiaXmlGenerator.Models;
 using DeepL;
+using System.IO;
 
 namespace TiaHelperLibrary
 {
@@ -689,6 +690,50 @@ namespace TiaHelperLibrary
             }
 
             return subFolder as IEnumerable<object>;
+        }
+        #endregion
+
+        #region Exporting program structure
+        /// <summary>
+        /// Exports blocks in main group and then call recursive function
+        /// </summary>
+        /// <param name="plcSoftware">Connected software</param>
+        public List<string> exportProgramStructure(PlcSoftware plcSoftware, string path)
+        {
+            SubLevel nestingLevel = new SubLevel();
+            List<string> unexported = new List<string>();
+
+            foreach (PlcBlock block in plcSoftware.BlockGroup.Blocks)
+
+                if (block.IsConsistent) block.Export(new FileInfo(path + $"\\{block.Name}.xml"), ExportOptions.WithDefaults);
+                else unexported.Add(path + $"\\{block.Name}");
+
+            exportProgramStructureRecursive(plcSoftware.BlockGroup.Groups, nestingLevel, path, ref unexported);
+
+            return unexported;
+        }
+
+
+        /// <summary>
+        /// Checks group for blacks and checking subgroups by recurse
+        /// </summary>
+        /// <param name="groupComposition">Subgroup</param>
+        /// <param name="nestLevel">saves sublevel</param>
+        public void exportProgramStructureRecursive(PlcBlockUserGroupComposition groupComposition, SubLevel nestLevel, string path, ref List<string> unexported)
+        {
+            foreach (PlcBlockGroup blockGroup in groupComposition)
+            {
+                string subpath = path + $"\\{blockGroup.Name}";
+                Directory.CreateDirectory(subpath);
+
+                foreach (PlcBlock plcBlock in blockGroup.Blocks)
+                {
+                    if (plcBlock.IsConsistent) plcBlock.Export(new FileInfo(subpath + $"\\{plcBlock.Name}.xml"), ExportOptions.WithDefaults);
+                    else unexported.Add(subpath + $"\\{plcBlock.Name}");
+                }
+                exportProgramStructureRecursive(blockGroup.Groups, nestLevel, subpath, ref unexported);
+                nestLevel.PrevLeveL();
+            }
         }
         #endregion
 
