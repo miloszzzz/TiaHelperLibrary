@@ -125,6 +125,32 @@ namespace TiaHelperLibrary
             return GetPlcSoftware();
         }
 
+        public PlcSoftware GetPlcSoftware(Project proj)
+        {
+            project = proj;
+
+            return GetPlcSoftware();
+        }
+
+        /// <summary>
+        /// Function checking parent type, for use in addins
+        /// </summary>
+        /// <param name="block"></param>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
+        public PlcSoftware GetPlcSoftware(PlcBlockGroup block) 
+        {
+            var parent = block.Parent;
+            int i = 0;
+            while (!(parent is PlcSoftware))
+            {
+                if (i > 10) throw new Exception("Can't find PLC software");
+                parent = parent.Parent;
+                i++;
+            }
+
+            return (PlcSoftware) parent;
+        }
 
         public PlcSoftware GetPlcSoftware()
         {
