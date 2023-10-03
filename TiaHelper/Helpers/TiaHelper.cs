@@ -386,20 +386,20 @@ namespace TiaHelperLibrary
         /// <param name="tag"></param>
         /// <param name="actuators"></param>
         /// <returns>True if tag was assigned</returns>
-        private static bool TryAssignTag(string expression, PlcTag tag, Dictionary<int, Actuator> actuators, EnumActTag tagType)
+        private static bool TryAssignTag(Regex regex, PlcTag tag, Dictionary<int, Actuator> actuators, EnumActTag tagType)
         {
-            RegexOptions options = RegexOptions.IgnoreCase;
-            Regex regex = new Regex(expression, options);
-
             if (regex.IsMatch(tag.Name))
             {
                 int pos = tag.Name.IndexOf('Y');
+
+                if (pos == -1) return false;
+
                 List<int> nums = FindNumbersInString(tag.Name.Substring(pos));
 
                 if (nums.Count <= 0) return false;
                 if (actuators.ContainsKey(nums[0]))
                 {
-                    switch(tagType)
+                    switch (tagType)
                     {
                         case EnumActTag.InputRet:
                             actuators[nums[0]].InputRetract = tag.Name;
@@ -410,7 +410,6 @@ namespace TiaHelperLibrary
                             return true;
 
                         case EnumActTag.OutputRet:
-                            
                             actuators[nums[0]].OutputRetract = tag.Name;
                             return true;
 
@@ -426,7 +425,6 @@ namespace TiaHelperLibrary
             return false;
         }
 
-       
         public static void AssingTagsToActuators(Dictionary<int, Actuator> actuators, List<PlcTag> tags)
         {
             string retract = "Ret";
@@ -434,38 +432,52 @@ namespace TiaHelperLibrary
             string input = "I_ActY";
             string output = "Q_";
 
-            string expression = "";
+            string cof = "Cof";
+            string wys = "Wys";
+            string wej = @"I_Sil[\s\S]*Y";
+            string wyj = "Q_";
+
+            // StringBuilder would speed up a little bit
+
+            RegexOptions regexOptions = RegexOptions.IgnoreCase;
+
+            Regex inputRetRegex = new Regex(input + @"\d*" + retract + @"[\s\S]*", regexOptions);
+            Regex inputRetRegexPl = new Regex(wej + @"\d*" + @"[\s\S]*" + cof, regexOptions);
+            Regex inputRetRegexPl2 = new Regex(wej + @"\d*" + @"[\s\S]*" + "Otw" + @"[\s\S]*", regexOptions);
+
+            Regex inputExtRegex = new Regex(input + @"\d*" + extend + @"[\s\S]*", regexOptions);
+            Regex inputExtRegexPl = new Regex(wej + @"\d*" + @"[\s\S]*" + wys, regexOptions);
+            Regex inputExtRegexPl2 = new Regex(wej + @"\d*" + @"[\s\S]*" + "Zam" + @"[\s\S]*", regexOptions);
+
+            Regex outputRetRegex = new Regex(output + @"[\s\S]*Y\d{1,3}_" + retract + @"[\s\S]*", regexOptions);
+            Regex outputRetRegexPl = new Regex(wyj + @"[\s\S]*Y\d{1,3}_" + cof + @"[\s\S]*", regexOptions);
+
+            Regex outputExtRegex = new Regex(output + @"[\s\S]*Y\d{1,3}_" + extend + @"[\s\S]*", regexOptions);
+            Regex outputExtRegexPl = new Regex(wyj + @"[\s\S]*Y\d{1,3}_" + wys + @"[\s\S]*", regexOptions);
 
             // Input retract
             foreach (PlcTag tag in tags)
             {
-                expression = input + @"\d*" + retract + @"[\s\S]*";
-                if (TryAssignTag(expression, tag, actuators, EnumActTag.InputRet)) continue;
+                // Inputs // maybe remove used tag from tag list?
+                //
+                if (TryAssignTag(inputRetRegex, tag, actuators, EnumActTag.InputRet)) continue;
+                if (TryAssignTag(inputRetRegexPl, tag, actuators, EnumActTag.InputRet)) continue;
+                if (TryAssignTag(inputRetRegexPl2, tag, actuators, EnumActTag.InputRet)) continue;
 
-                expression = input + @"\d*" + extend + @"[\s\S]*";
-                if (TryAssignTag(expression, tag, actuators, EnumActTag.InputExt)) continue;
+                if (TryAssignTag(inputExtRegex, tag, actuators, EnumActTag.InputExt)) continue;
+                if (TryAssignTag(inputExtRegexPl, tag, actuators, EnumActTag.InputExt)) continue;
+                if (TryAssignTag(inputExtRegexPl2, tag, actuators, EnumActTag.InputExt)) continue;
 
-                expression = output + @"[\s\S]*Y\d{1,3}_" + retract + @"[\s\S]*";
-                if (TryAssignTag(expression, tag, actuators, EnumActTag.OutputRet))
-                {
-                    continue;
-                }
-                else
-                {
-                    string asdf = tag.Name;
-                }
+                // Outputs
+                //
+                if (TryAssignTag(outputRetRegex, tag, actuators, EnumActTag.OutputRet)) continue;
+                if (TryAssignTag(outputRetRegexPl, tag, actuators, EnumActTag.OutputRet)) continue;
 
-                expression = output + @"[\s\S]*Y\d{1,3}_" + extend + @"[\s\S]*";
-                if (TryAssignTag(expression, tag, actuators, EnumActTag.OutputExt))
-                {
-                    continue;
-                }
-                else
-                {
-                    string asdff = tag.Name;
-                }
+                if (TryAssignTag(outputExtRegex, tag, actuators, EnumActTag.OutputExt)) continue;
+                if (TryAssignTag(outputExtRegexPl, tag, actuators, EnumActTag.OutputExt)) continue;
             }
         }
+
 
         #region Getting program structure
         /// <summary>
