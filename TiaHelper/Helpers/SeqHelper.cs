@@ -86,7 +86,7 @@ namespace TiaHelperLibrary.Helpers
                 seq.Language = c.Name;
                 sequences.Add(seq);
             }
-            /*
+
             Document sequenceFc = SequenceXmlDeserialize(block);
 
             List<object> objectsFromXml = new List<object>();
@@ -121,7 +121,7 @@ namespace TiaHelperLibrary.Helpers
                     }
                 }
             }
-            */
+
             return sequences;
         }
     }
