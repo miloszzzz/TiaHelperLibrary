@@ -31,20 +31,24 @@ using System.IO;
 
 namespace TiaHelperLibrary
 {
-    public class TiaHelper
+    public static class TiaHelper
     {
-        public TiaPortalProcess process { get; set; }
-        private Project project;
+        //public TiaPortalProcess process { get; set; } - it's used in openness not addins
+
 
         /// <summary>
         /// Connecting to the process
         /// </summary>
+        /// 
+
+        /* - openness function
         public TiaHelper(bool getProcess) 
         { 
-            if (getProcess) SelectProcess();
+            //if (getProcess) SelectProcess();
             var asdf = Siemens.Engineering.ConfirmationChoices.Abort;
-        }
+        }*/
 
+        /*
         /// <summary>
         /// Connecting to the process selected by it's index
         /// </summary>
@@ -59,9 +63,9 @@ namespace TiaHelperLibrary
                 Console.WriteLine(ex.Message);
                 return;
             }
-        }
+        }*/
 
-
+        /*
         #region Connecting to TIA
         /// <summary>
         /// Default function for selecting tia process.
@@ -107,8 +111,9 @@ namespace TiaHelperLibrary
             }
             process = processes[selectedProcess];
             return;
-        }
+        }*/
 
+        #region Get PLC software
 
         /// <summary>
         /// Function returns first PLC software it finds in project
@@ -117,21 +122,36 @@ namespace TiaHelperLibrary
         /// <param name="tiaPortal"></param>
         /// <param name="writeInConsole">Flag for writing scan information</param>
         /// <returns></returns>
-        public PlcSoftware GetPlcSoftware(TiaPortal tiaPortal)
+        public static PlcSoftware GetPlcSoftware(TiaPortal tiaPortal)
         {
             ProjectComposition projectComposition = tiaPortal.Projects;
-            SoftwareContainer softwareContainer;
-            project = projectComposition[0];
 
-            return GetPlcSoftware();
+            return GetPlcSoftware(projectComposition[0]);
         }
 
-        public PlcSoftware GetPlcSoftware(Project proj)
+
+        public static PlcSoftware GetPlcSoftware(Project project)
         {
-            project = proj;
+            // find first PLC device
+            Device device = project.Devices.FirstOrDefault(d => CheckIfPlc(d));
 
-            return GetPlcSoftware();
+            // first PLCs device item is rack
+            DeviceItem deviceItem = device.Items[0];
+
+
+            // Only deviceitem with software is PLC
+            DeviceItem item = deviceItem.Items.FirstOrDefault(i => (i.GetService<SoftwareContainer>() != null));
+
+            // Get service & soft
+            return GetPlcSoftware(item);
         }
+
+
+        public static PlcSoftware GetPlcSoftware(DeviceItem plc)
+        {
+            return (PlcSoftware)plc.GetService<SoftwareContainer>().Software;
+        }
+
 
         /// <summary>
         /// Function checking parent type, for use in addins
@@ -139,7 +159,7 @@ namespace TiaHelperLibrary
         /// <param name="block"></param>
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
-        public PlcSoftware GetPlcSoftware(PlcBlockGroup block) 
+        public static PlcSoftware GetPlcSoftware(PlcBlockGroup block) 
         {
             var parent = block.Parent;
             int i = 0;
@@ -153,31 +173,30 @@ namespace TiaHelperLibrary
             return (PlcSoftware) parent;
         }
 
-        public PlcSoftware GetPlcSoftware()
+
+        public static PlcSoftware GetPlcSoftware(PlcBlock block)
         {
-            // find first PLC device
-            Device device = project.Devices.FirstOrDefault(d => CheckIfPlc(d));
-
-            // first PLCs device item is rack
-            DeviceItem deviceItem = device.Items[0];
-            SoftwareContainer softwareContainer;
-
-            // Only deviceitem with software is PLC
-            DeviceItem item = deviceItem.Items.FirstOrDefault(i => (i.GetService<SoftwareContainer>() != null));
-
-            // Get service & soft
-            softwareContainer = item.GetService<SoftwareContainer>();
-
-            return (PlcSoftware)softwareContainer.Software;
+            return GetPlcSoftware((PlcBlockGroup)block.Parent);
         }
 
+
+        public static PlcSoftware GetPlcSoftware(MenuSelectionProvider provider)
+        {
+            var selection = provider.GetSelection().FirstOrDefault();
+
+            if (selection is Project) return GetPlcSoftware((Project)selection);
+            else if (selection is PlcBlockGroup) return GetPlcSoftware((PlcBlockGroup)selection);
+            else if (selection is PlcBlock) return GetPlcSoftware((PlcBlock)selection);
+            else if (selection is DeviceItem) return GetPlcSoftware((DeviceItem)selection);
+            return null;
+        }
 
         /// <summary>
         /// Checking the name of Device
         /// </summary>
         /// <param name="device"></param>
         /// <returns></returns>
-        public bool CheckIfPlc(Device device)
+        public static bool CheckIfPlc(Device device)
         {
             if (device.TypeIdentifier.Contains("1500") ||
                 device.TypeIdentifier.Contains("1200") ||
@@ -188,8 +207,9 @@ namespace TiaHelperLibrary
             return false;
         }
 
+        #endregion
 
-        public HmiTarget GetHmiTarget(TiaPortal tiaPortal)
+        public static HmiTarget GetHmiTarget(TiaPortal tiaPortal)
         {
             foreach (Device dev in tiaPortal.Projects[0].Devices)
             {
@@ -209,7 +229,7 @@ namespace TiaHelperLibrary
         }
 
 
-        public DeviceItem GetHmiDeviceItem(Device device)
+        public static DeviceItem GetHmiDeviceItem(Device device)
         { 
             /*foreach (DeviceItem devi in device.DeviceItems)
             {
@@ -222,14 +242,14 @@ namespace TiaHelperLibrary
         }
 
 
-        #endregion
+        //#endregion
 
 
         /// <summary>
         /// Function writes all tags in console.
         /// </summary>
         /// <param name="plcSoftware"></param>
-        public void ShowAllTags(PlcSoftware plcSoftware)
+        public static void ShowAllTags(PlcSoftware plcSoftware)
         {
             PlcTagTableSystemGroup plcTagTableSystemGroup = plcSoftware.TagTableGroup;
             foreach (PlcTagTable plcTagTable in plcTagTableSystemGroup.TagTables)
@@ -407,7 +427,6 @@ namespace TiaHelperLibrary
             return false;
         }
 
-
         public static void AssingTagsToActuators(Dictionary<int, Actuator> actuators, List<PlcTag> tags)
         {
             string retract = "Ret";
@@ -461,12 +480,13 @@ namespace TiaHelperLibrary
             }
         }
 
+
         #region Getting program structure
         /// <summary>
         /// Prints blocks in main group and then call recursive function
         /// </summary>
         /// <param name="plcSoftware">Connected software</param>
-        public void showProgramStructure(PlcSoftware plcSoftware)
+        public static void showProgramStructure(PlcSoftware plcSoftware)
         {
             SubLevel nestingLevel = new SubLevel();
 
@@ -482,7 +502,7 @@ namespace TiaHelperLibrary
         /// </summary>
         /// <param name="groupComposition">Subgroup</param>
         /// <param name="nestLevel">saves sublevel</param>
-        public void programStructureRecursive(PlcBlockUserGroupComposition groupComposition, SubLevel nestLevel)
+        public static void programStructureRecursive(PlcBlockUserGroupComposition groupComposition, SubLevel nestLevel)
         {
             foreach (PlcBlockGroup blockGroup in groupComposition)
             {
@@ -504,7 +524,7 @@ namespace TiaHelperLibrary
         /// Prints groups and blocks
         /// </summary>
         /// <param name="plcSoftware"></param>
-        public void ShowAllElements(PlcSoftware plcSoftware)
+        public static void ShowAllElements(PlcSoftware plcSoftware)
         {
             Collection<object> list = new Collection<object>();
 
@@ -710,7 +730,7 @@ namespace TiaHelperLibrary
         /// Exports blocks in main group and then call recursive function
         /// </summary>
         /// <param name="plcSoftware">Connected software</param>
-        public List<string> exportProgramStructure(PlcSoftware plcSoftware, string path)
+        public static List<string> exportProgramStructure(PlcSoftware plcSoftware, string path)
         {
             SubLevel nestingLevel = new SubLevel();
             List<string> unexported = new List<string>();
@@ -731,7 +751,7 @@ namespace TiaHelperLibrary
         /// </summary>
         /// <param name="groupComposition">Subgroup</param>
         /// <param name="nestLevel">saves sublevel</param>
-        public void exportProgramStructureRecursive(PlcBlockUserGroupComposition groupComposition, SubLevel nestLevel, string path, ref List<string> unexported)
+        public static void exportProgramStructureRecursive(PlcBlockUserGroupComposition groupComposition, SubLevel nestLevel, string path, ref List<string> unexported)
         {
             foreach (PlcBlockGroup blockGroup in groupComposition)
             {
@@ -757,7 +777,7 @@ namespace TiaHelperLibrary
         /// <param name="mainBlockGroup">Program blocks</param>
         /// <param name="defGroup">eg. !!!!!Functions defined in def groups</param>
         /// <returns>Default philogic group or null</returns>
-        public PlcBlockUserGroup GetDefaultGroup(PlcBlockSystemGroup mainBlockGroup, DefGroup defGroup)
+        public static PlcBlockUserGroup GetDefaultGroup(PlcBlockSystemGroup mainBlockGroup, DefGroup defGroup)
         {
             PlcBlockUserGroup plcSystemGroup = null;
 
@@ -779,7 +799,7 @@ namespace TiaHelperLibrary
         /// </summary>
         /// <param name="defGroup">Group from DefGroup enum</param>
         /// <returns>String with group name</returns>
-        private string GetTypeDescription(DefGroup defGroup)
+        private static string GetTypeDescription(DefGroup defGroup)
         {
             Type enumType = typeof(DefGroup);
 
@@ -797,7 +817,7 @@ namespace TiaHelperLibrary
         /// </summary>
         /// <param name="mainBlockGroup">Group with sequences</param>
         /// <returns>Collection of sequences blocks</returns>
-        public Collection<PlcBlock> GetSequencesBlocks(PlcBlockSystemGroup mainBlockGroup)
+        public static Collection<PlcBlock> GetSequencesBlocks(PlcBlockSystemGroup mainBlockGroup)
         {
             PlcBlockUserGroup sequencesGroup = GetDefaultGroup(mainBlockGroup, DefGroup.Sequences);
             //Console.WriteLine(sequencesGroup.Name);
@@ -833,7 +853,7 @@ namespace TiaHelperLibrary
         }
 
 
-        public PlcBlockGroup GetGroupByBlockName(PlcBlockGroup blockGroup, string blockName)
+        public static PlcBlockGroup GetGroupByBlockName(PlcBlockGroup blockGroup, string blockName)
         {
             PlcBlock plcBlock = blockGroup.Blocks.FirstOrDefault(block => block.Name == blockName);
             if (plcBlock != null) return blockGroup;
@@ -874,7 +894,7 @@ namespace TiaHelperLibrary
         /// Get list of active languages
         /// </summary>
         /// <returns></returns>
-        public List<CultureInfo> GetProjectCultures()
+        public static List<CultureInfo> GetProjectCultures(Project project)
         {
             List<CultureInfo> cultureList = new List<CultureInfo>();
 
@@ -916,7 +936,7 @@ namespace TiaHelperLibrary
         /// Displaying composition informations
         /// </summary>
         /// <param name="obj"></param>
-        public void DisplayCompositionInfos(IEngineeringObject obj)
+        public static void DisplayCompositionInfos(IEngineeringObject obj)
         {
             IList<EngineeringCompositionInfo> compositionInfos = obj.GetCompositionInfos();
             foreach (EngineeringCompositionInfo compositionInfo in compositionInfos)
@@ -926,17 +946,5 @@ namespace TiaHelperLibrary
         }
 
 
-        public string GetProcessPath()
-        {
-            if (process == null) { return "No process selected"; }
-            else return process.ProjectPath.FullName;
-        }
-
-
-        public string GetProcessName()
-        {
-            if (process == null) { return "No process selected"; }
-            else return process.ProjectPath.Name;
-        }
     }
 }
