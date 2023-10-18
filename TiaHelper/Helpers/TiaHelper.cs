@@ -199,6 +199,7 @@ namespace TiaHelperLibrary
         /// <returns></returns>
         public static bool CheckIfPlc(Device device)
         {
+            if (device.TypeIdentifier == null) return false;
             if (device.TypeIdentifier.Contains("1500") ||
                 device.TypeIdentifier.Contains("1200") ||
                 device.TypeIdentifier.Contains("ET200"))
