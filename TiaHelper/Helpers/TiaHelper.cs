@@ -429,6 +429,7 @@ namespace TiaHelperLibrary
             return false;
         }
 
+
         public static void AssingTagsToActuators(Dictionary<int, Actuator> actuators, List<PlcTag> tags)
         {
             string retract = "Ret";
@@ -930,6 +931,42 @@ namespace TiaHelperLibrary
                 }
                 else return name;
             }
+        }
+
+
+        public static string SeparateWords(string text)
+        {
+            if (text is null) return text;
+            if (text.Length < 2) return text;
+
+            StringBuilder stringBuilder = new StringBuilder(text);
+
+            bool isDigit, isDigitNext, isWhiteSpace, isWhiteSpaceNext, isWhiteSpacePrev;
+
+            for (int i = 1; i < stringBuilder.Length - 1; i++)
+            {
+                if (stringBuilder[i] == '_')
+                {
+                    stringBuilder.Replace('_', ' ', i, 1);
+                    continue;
+                }
+
+                if (char.IsLower(stringBuilder[i])) continue;
+                if (char.IsWhiteSpace(stringBuilder[i])) continue;
+                if (char.IsWhiteSpace(stringBuilder[i - 1])) continue;
+                if (char.IsWhiteSpace(stringBuilder[i + 1])) continue;
+                if (char.IsUpper(stringBuilder[i - 1])) continue;
+                if (char.IsUpper(stringBuilder[i + 1])) continue;
+                if (char.IsDigit(stringBuilder[i])) continue;
+                if (char.IsDigit(stringBuilder[i + 1])) continue;
+
+                {
+                    stringBuilder[i] = char.ToLower(stringBuilder[i]);
+                    stringBuilder.Insert(i, ' ');
+                }
+            }
+
+            return stringBuilder.ToString();
         }
 
 

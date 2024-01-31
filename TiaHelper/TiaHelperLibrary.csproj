@@ -63,9 +63,6 @@
     <Reference Include="System.Data" />
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Xml" />
-    <Reference Include="TiaXmlGenerator">
-      <HintPath>..\..\..\TiaXmlGenerator\TiaXmlGenerator\bin\Debug\net4.6.2\TiaXmlGenerator.dll</HintPath>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Enums\DefGroup.cs" />
@@ -110,6 +107,12 @@
     <PackageReference Include="Siemens.Collaboration.Net.TiaPortal.Packages.OpennessAddIn">
       <Version>16.0.1685432628</Version>
     </PackageReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\TiaXmlGenerator\TiaXmlGenerator\TiaXmlGenerator.csproj">
+      <Project>{94c81d43-41eb-41fa-8e46-f04ba4bab794}</Project>
+      <Name>TiaXmlGenerator</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
