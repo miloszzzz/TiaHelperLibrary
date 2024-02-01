@@ -109,14 +109,11 @@
       <Version>16.0.1685432628</Version>
     </PackageReference>
   </ItemGroup>
-<<<<<<< HEAD
   <ItemGroup>
     <ProjectReference Include="..\..\..\TiaXmlGenerator\TiaXmlGenerator\TiaXmlGenerator.csproj">
       <Project>{94c81d43-41eb-41fa-8e46-f04ba4bab794}</Project>
       <Name>TiaXmlGenerator</Name>
     </ProjectReference>
   </ItemGroup>
-=======
->>>>>>> 1fe898c (repaired)
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
