@@ -29,6 +29,8 @@ using System.Globalization;
 using TiaXmlGenerator.Models;
 using DeepL;
 using System.IO;
+using Siemens.Engineering.HmiUnified;
+using Siemens.Engineering.HmiUnified.UI.Screens;
 
 namespace TiaHelperLibrary
 {
@@ -211,47 +213,91 @@ namespace TiaHelperLibrary
 
         #endregion
 
+
+        #region Get HMI target
         public static HmiTarget GetHmiTarget(TiaPortal tiaPortal)
         {
             foreach (Device dev in tiaPortal.Projects[0].Devices)
             {
-                //Console.WriteLine(dev.DeviceItems.Count);
-                DeviceItem deviceItem = GetHmiDeviceItem(dev);
-                if (deviceItem != null)
-                {
-                    SoftwareContainer softwareContainer = deviceItem.GetService<SoftwareContainer>();
-                    if (softwareContainer == null) continue;
-
-                    HmiTarget hmi = softwareContainer.Software as HmiTarget;
-                    if (hmi != null) return hmi;
-                }
+                return GetHmiTarget(dev);
             }
 
             return null;
         }
 
 
-        public static DeviceItem GetHmiDeviceItem(Device device)
-        { 
-            /*foreach (DeviceItem devi in device.DeviceItems)
-            {
-                Console.WriteLine(devi.Name + "\t" + devi.TypeIdentifier);
-                hmiDevi = devi;
-            }*/
-            DeviceItem devi = device.DeviceItems.FirstOrDefault(d => d.Name.Contains("HMI"));
-            //if (devi != null) Console.WriteLine(devi.Name);
-            return devi;
+        public static HmiTarget GetHmiTarget(Project project)
+        {
+            return GetHmiTarget(
+                project.Devices.FirstOrDefault(
+                    d => GetHmiTarget(d) != null)
+                );
         }
 
 
-        //#endregion
+        public static HmiTarget GetHmiTarget(DeviceComposition deviceComposition)
+        {
+            return GetHmiTarget(
+                deviceComposition.FirstOrDefault(
+                    d => GetHmiTarget(d) != null));
+        }
 
 
-        /// <summary>
-        /// Function writes all tags in console.
-        /// </summary>
-        /// <param name="plcSoftware"></param>
-        public static void ShowAllTags(PlcSoftware plcSoftware)
+            public static HmiTarget GetHmiTarget(Device device)
+        {
+            return GetHmiTarget(device.DeviceItems);
+        }
+
+        public static HmiTarget GetHmiTarget(DeviceItemComposition deviceitems)
+        {
+            HmiTarget hmiTarget = deviceitems.FirstOrDefault(
+                d => d.TypeIdentifier.Contains("6AV"))
+                .GetService<SoftwareContainer>().Software as HmiTarget;
+
+            if (hmiTarget != null) return hmiTarget;
+
+            return null;
+        }
+
+
+        public static HmiTarget GetHmiTarget(Siemens.Engineering.Hmi.Screen.Screen screen)
+        {
+            int i = 0;
+            var parent = screen.Parent;
+
+            while (!(parent is HmiTarget))
+            {
+                if (i > 10) throw new Exception("Can't find HMI target");
+                parent = parent.Parent;
+                i++;
+            }
+
+            return parent as HmiTarget;
+        }
+
+
+        public static HmiTarget GetHmiTarget(MenuSelectionProvider provider)
+        {
+            var selection = provider.GetSelection().FirstOrDefault();
+
+            if (selection is Siemens.Engineering.Hmi.Screen.Screen) return GetHmiTarget((Siemens.Engineering.Hmi.Screen.Screen)selection);
+            else if (selection is Device) return GetHmiTarget((Device)selection);
+            //else if (selection is DeviceItem) return GetHmiTarget((DeviceItem)selection);
+            else if (selection is TiaPortal) return GetHmiTarget((TiaPortal)selection);
+            return null;
+        }
+
+
+       #endregion
+
+            //#endregion
+
+
+            /// <summary>
+            /// Function writes all tags in console.
+            /// </summary>
+            /// <param name="plcSoftware"></param>
+            public static void ShowAllTags(PlcSoftware plcSoftware)
         {
             PlcTagTableSystemGroup plcTagTableSystemGroup = plcSoftware.TagTableGroup;
             foreach (PlcTagTable plcTagTable in plcTagTableSystemGroup.TagTables)
@@ -440,25 +486,30 @@ namespace TiaHelperLibrary
             string cof = "Cof";
             string wys = "Wys";
             string wej = @"I_Sil[\s\S]*Y";
-            string wyj = "Q_";
 
             // StringBuilder would speed up a little bit
 
             RegexOptions regexOptions = RegexOptions.IgnoreCase;
 
             Regex inputRetRegex = new Regex(input + @"\d*" + retract + @"[\s\S]*", regexOptions);
+            Regex inputRetRegex2 = new Regex(input + @"\d*" + @"[\s\S]*" + retract, regexOptions);
             Regex inputRetRegexPl = new Regex(wej + @"\d*" + @"[\s\S]*" + cof, regexOptions);
             Regex inputRetRegexPl2 = new Regex(wej + @"\d*" + @"[\s\S]*" + "Otw" + @"[\s\S]*", regexOptions);
+            Regex inputRetRegexLast = new Regex("I_" + @"[\s\S]*" + @"Y\d*" + @"[\s\S]*", regexOptions);
 
             Regex inputExtRegex = new Regex(input + @"\d*" + extend + @"[\s\S]*", regexOptions);
+            Regex inputExtRegex2 = new Regex(input + @"\d*" + @"[\s\S]*" + extend, regexOptions);
             Regex inputExtRegexPl = new Regex(wej + @"\d*" + @"[\s\S]*" + wys, regexOptions);
             Regex inputExtRegexPl2 = new Regex(wej + @"\d*" + @"[\s\S]*" + "Zam" + @"[\s\S]*", regexOptions);
+            Regex inputExtRegexLast = new Regex("I_" + @"[\s\S]*" + @"Y\d*" + @"[\s\S]*", regexOptions);
 
             Regex outputRetRegex = new Regex(output + @"[\s\S]*Y\d{1,3}_" + retract + @"[\s\S]*", regexOptions);
-            Regex outputRetRegexPl = new Regex(wyj + @"[\s\S]*Y\d{1,3}_" + cof + @"[\s\S]*", regexOptions);
+            Regex outputRetRegex2 = new Regex(output + @"[\s\S]*Y\d{1,3}" + @"[\s\S]*" + retract + @"[\s\S]*", regexOptions);
+            Regex outputRetRegexPl = new Regex(output + @"[\s\S]*Y\d{1,3}_" + cof + @"[\s\S]*", regexOptions);
 
             Regex outputExtRegex = new Regex(output + @"[\s\S]*Y\d{1,3}_" + extend + @"[\s\S]*", regexOptions);
-            Regex outputExtRegexPl = new Regex(wyj + @"[\s\S]*Y\d{1,3}_" + wys + @"[\s\S]*", regexOptions);
+            Regex outputExtRegex2 = new Regex(output + @"[\s\S]*Y\d{1,3}" + @"[\s\S]*" + extend + @"[\s\S]*", regexOptions);
+            Regex outputExtRegexPl = new Regex(output + @"[\s\S]*Y\d{1,3}_" + wys + @"[\s\S]*", regexOptions);
 
             // Input retract
             foreach (PlcTag tag in tags)
@@ -466,20 +517,29 @@ namespace TiaHelperLibrary
                 // Inputs // maybe remove used tag from tag list?
                 //
                 if (TryAssignTag(inputRetRegex, tag, actuators, EnumActTag.InputRet)) continue;
+                if (TryAssignTag(inputRetRegex2, tag, actuators, EnumActTag.InputRet)) continue;
                 if (TryAssignTag(inputRetRegexPl, tag, actuators, EnumActTag.InputRet)) continue;
                 if (TryAssignTag(inputRetRegexPl2, tag, actuators, EnumActTag.InputRet)) continue;
 
                 if (TryAssignTag(inputExtRegex, tag, actuators, EnumActTag.InputExt)) continue;
+                if (TryAssignTag(inputExtRegex2, tag, actuators, EnumActTag.InputExt)) continue;
                 if (TryAssignTag(inputExtRegexPl, tag, actuators, EnumActTag.InputExt)) continue;
                 if (TryAssignTag(inputExtRegexPl2, tag, actuators, EnumActTag.InputExt)) continue;
 
                 // Outputs
                 //
                 if (TryAssignTag(outputRetRegex, tag, actuators, EnumActTag.OutputRet)) continue;
+                if (TryAssignTag(outputRetRegex2, tag, actuators, EnumActTag.OutputRet)) continue;
                 if (TryAssignTag(outputRetRegexPl, tag, actuators, EnumActTag.OutputRet)) continue;
 
                 if (TryAssignTag(outputExtRegex, tag, actuators, EnumActTag.OutputExt)) continue;
+                if (TryAssignTag(outputExtRegex2, tag, actuators, EnumActTag.OutputExt)) continue;
                 if (TryAssignTag(outputExtRegexPl, tag, actuators, EnumActTag.OutputExt)) continue;
+
+                // Inputs not precise
+                //
+                if (TryAssignTag(inputRetRegexLast, tag, actuators, EnumActTag.InputRet)) continue;
+                if (TryAssignTag(inputExtRegexLast, tag, actuators, EnumActTag.InputExt)) continue;
             }
         }
 

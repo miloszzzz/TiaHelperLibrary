@@ -71,6 +71,7 @@
     <Compile Include="Enums\EnumStations.cs" />
     <Compile Include="Helpers\SeqHelper.cs" />
     <Compile Include="Models\Tia\Group.cs" />
+    <Compile Include="Models\Tia\PlcTagTableXml.cs" />
     <Compile Include="Models\Tia\ProjectElement.cs" />
     <Compile Include="Models\Tia\SeqFC.cs" />
     <Compile Include="Models\Tia\Sequence.cs" />
