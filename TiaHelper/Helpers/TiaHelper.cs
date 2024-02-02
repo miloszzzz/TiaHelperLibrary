@@ -219,7 +219,9 @@ namespace TiaHelperLibrary
         {
             foreach (Device dev in tiaPortal.Projects[0].Devices)
             {
-                return GetHmiTarget(dev);
+                HmiTarget target = GetHmiTarget(dev);
+
+                if (target != null) return target;
             }
 
             return null;
@@ -234,6 +236,37 @@ namespace TiaHelperLibrary
                 );
         }
 
+        public static HmiTarget GetHmiTarget(Device device)
+        {
+            string asdf;
+            HmiTarget hmiTarget = null;
+            try
+            {
+                /*hmiTarget = device.DeviceItems.FirstOrDefault(
+                    d => d.TypeIdentifier.Contains("6AV"))
+                    .GetService<SoftwareContainer>().Software as HmiTarget;*/
+                foreach (DeviceItem deviceitem in device.DeviceItems)
+                {
+                    SoftwareContainer softwareContainer = deviceitem.GetService<SoftwareContainer>();
+                    if (softwareContainer != null)
+                    {
+                        Software softwareBase = softwareContainer.Software;
+                        hmiTarget = softwareBase as HmiTarget;
+                        return hmiTarget;
+                    }
+                    /*if (deviceitem.TypeIdentifier.Contains("6AV"))
+                    {
+                        asdf = deviceitem.TypeIdentifier;
+                        return hmiTarget = deviceitem.GetService<SoftwareContainer>().Software as HmiTarget;
+                    }*/
+                }
+                return null;
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
+        }
 
         public static HmiTarget GetHmiTarget(DeviceComposition deviceComposition)
         {
@@ -243,19 +276,23 @@ namespace TiaHelperLibrary
         }
 
 
-            public static HmiTarget GetHmiTarget(Device device)
-        {
-            return GetHmiTarget(device.DeviceItems);
-        }
+        
 
         public static HmiTarget GetHmiTarget(DeviceItemComposition deviceitems)
         {
-            HmiTarget hmiTarget = deviceitems.FirstOrDefault(
-                d => d.TypeIdentifier.Contains("6AV"))
-                .GetService<SoftwareContainer>().Software as HmiTarget;
+            HmiTarget hmiTarget = null;
+            try
+            {
+                hmiTarget = deviceitems.FirstOrDefault(
+                    d => d.TypeIdentifier.Contains("6AV"))
+                    .GetService<SoftwareContainer>().Software as HmiTarget;
 
-            if (hmiTarget != null) return hmiTarget;
-
+                return hmiTarget;
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
             return null;
         }
 
@@ -290,14 +327,14 @@ namespace TiaHelperLibrary
 
        #endregion
 
-            //#endregion
+        //#endregion
 
 
-            /// <summary>
-            /// Function writes all tags in console.
-            /// </summary>
-            /// <param name="plcSoftware"></param>
-            public static void ShowAllTags(PlcSoftware plcSoftware)
+        /// <summary>
+        /// Function writes all tags in console.
+        /// </summary>
+        /// <param name="plcSoftware"></param>
+        public static void ShowAllTags(PlcSoftware plcSoftware)
         {
             PlcTagTableSystemGroup plcTagTableSystemGroup = plcSoftware.TagTableGroup;
             foreach (PlcTagTable plcTagTable in plcTagTableSystemGroup.TagTables)
