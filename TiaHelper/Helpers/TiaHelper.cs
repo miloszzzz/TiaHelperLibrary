@@ -513,6 +513,58 @@ namespace TiaHelperLibrary
         }
 
 
+        private static bool TryAssignTagSomfy(Regex regex, PlcTag tag, Dictionary<int, Actuator> actuators, EnumActTag tagType)
+        {
+            if (regex.IsMatch(tag.Name))
+            {
+                int pos = tag.Name.IndexOf('Y');
+
+                if (pos == -1) return false;
+
+                List<int> nums = new List<int>(10);
+                int key;
+
+                if (char.IsDigit(tag.Name[pos - 1]))    // if somfy standard eg. 2Y5 = 25
+                {
+                    nums = FindNumbersInString(tag.Name);
+                    key = nums[0] * 10 + nums[1];
+                }
+                else
+                {
+                    nums = FindNumbersInString(tag.Name.Substring(pos));
+                    key = nums[0];
+                }
+
+                if (nums.Count <= 0) return false;
+                if (actuators.ContainsKey(key))
+                {
+                    switch (tagType)
+                    {
+                        case EnumActTag.InputRet:
+                            actuators[nums[0]].InputRetract = tag.Name;
+                            return true;
+
+                        case EnumActTag.InputExt:
+                            actuators[nums[0]].InputExtend = tag.Name;
+                            return true;
+
+                        case EnumActTag.OutputRet:
+                            actuators[nums[0]].OutputRetract = tag.Name;
+                            return true;
+
+                        case EnumActTag.OutputExt:
+                            actuators[nums[0]].OutputExtend = tag.Name;
+                            return true;
+
+                        default:
+                            return false;
+                    }
+                }
+            }
+            return false;
+        }
+
+
         public static void AssingTagsToActuators(Dictionary<int, Actuator> actuators, List<PlcTag> tags)
         {
             string retract = "Ret";
@@ -545,12 +597,12 @@ namespace TiaHelperLibrary
             Regex outputRetRegex = new Regex(output + @"[\s\S]*Y\d{1,3}_" + retract + @"[\s\S]*", regexOptions);
             Regex outputRetRegex2 = new Regex(output + @"[\s\S]*Y\d{1,3}" + @"[\s\S]*" + retract + @"[\s\S]*", regexOptions);
             Regex outputRetRegexPl = new Regex(output + @"[\s\S]*Y\d{1,3}_" + cof + @"[\s\S]*", regexOptions);
-            Regex outputRetRegexSomfy = new Regex(@"\d{0,3}Y\d{0,3}" + retract, regexOptions);
+            Regex outputRetRegexSomfy = new Regex(output + @"\d{0,3}Y\d{0,3}" + retract, regexOptions);
 
             Regex outputExtRegex = new Regex(output + @"[\s\S]*Y\d{1,3}_" + extend + @"[\s\S]*", regexOptions);
             Regex outputExtRegex2 = new Regex(output + @"[\s\S]*Y\d{1,3}" + @"[\s\S]*" + extend + @"[\s\S]*", regexOptions);
             Regex outputExtRegexPl = new Regex(output + @"[\s\S]*Y\d{1,3}_" + wys + @"[\s\S]*", regexOptions);
-            Regex outputExtRegexSomfy = new Regex(@"\d{0,3}Y\d{0,3}" + extend, regexOptions);
+            Regex outputExtRegexSomfy = new Regex(output + @"\d{0,3}Y\d{0,3}" + extend, regexOptions);
 
             // Input retract
             foreach (PlcTag tag in tags)
@@ -561,25 +613,25 @@ namespace TiaHelperLibrary
                 if (TryAssignTag(inputRetRegex2, tag, actuators, EnumActTag.InputRet)) continue;
                 if (TryAssignTag(inputRetRegexPl, tag, actuators, EnumActTag.InputRet)) continue;
                 if (TryAssignTag(inputRetRegexPl2, tag, actuators, EnumActTag.InputRet)) continue;
-                if (TryAssignTag(inputRetRegexSomfy, tag, actuators, EnumActTag.InputRet)) continue;
+                if (TryAssignTagSomfy(inputRetRegexSomfy, tag, actuators, EnumActTag.InputRet)) continue;
 
                 if (TryAssignTag(inputExtRegex, tag, actuators, EnumActTag.InputExt)) continue;
                 if (TryAssignTag(inputExtRegex2, tag, actuators, EnumActTag.InputExt)) continue;
                 if (TryAssignTag(inputExtRegexPl, tag, actuators, EnumActTag.InputExt)) continue;
                 if (TryAssignTag(inputExtRegexPl2, tag, actuators, EnumActTag.InputExt)) continue;
-                if (TryAssignTag(inputExtRegexSomfy, tag, actuators, EnumActTag.InputRet)) continue;
+                if (TryAssignTagSomfy(inputExtRegexSomfy, tag, actuators, EnumActTag.InputRet)) continue;
 
                 // Outputs
                 //
                 if (TryAssignTag(outputRetRegex, tag, actuators, EnumActTag.OutputRet)) continue;
                 if (TryAssignTag(outputRetRegex2, tag, actuators, EnumActTag.OutputRet)) continue;
                 if (TryAssignTag(outputRetRegexPl, tag, actuators, EnumActTag.OutputRet)) continue;
-                if (TryAssignTag(outputRetRegexSomfy, tag, actuators, EnumActTag.InputRet)) continue;
+                if (TryAssignTagSomfy(outputRetRegexSomfy, tag, actuators, EnumActTag.InputRet)) continue;
 
                 if (TryAssignTag(outputExtRegex, tag, actuators, EnumActTag.OutputExt)) continue;
                 if (TryAssignTag(outputExtRegex2, tag, actuators, EnumActTag.OutputExt)) continue;
                 if (TryAssignTag(outputExtRegexPl, tag, actuators, EnumActTag.OutputExt)) continue;
-                if (TryAssignTag(outputExtRegexSomfy, tag, actuators, EnumActTag.InputRet)) continue;
+                if (TryAssignTagSomfy(outputExtRegexSomfy, tag, actuators, EnumActTag.InputRet)) continue;
 
                 // Inputs not precise
                 //
