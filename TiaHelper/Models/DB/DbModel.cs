@@ -1,6 +1,6 @@
 ﻿using System.Runtime.Serialization;
 
-namespace TiaHelperLibrary.Models
+namespace TiaHelperLibrary.Models.DB
 {
 
     // UWAGA: Wygenerowany kod może wymagać co najmniej programu .NET Framework 4.5 lub .NET Core/Standard 2.0.
@@ -9,7 +9,7 @@ namespace TiaHelperLibrary.Models
     [System.ComponentModel.DesignerCategoryAttribute("code")]
     [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true)]
     [System.Xml.Serialization.XmlRootAttribute(Namespace = "", IsNullable = false)]
-    public partial class DbModel
+    public partial class Document
     {
 
         private DocumentEngineering engineeringField;

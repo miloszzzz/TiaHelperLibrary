@@ -533,20 +533,24 @@ namespace TiaHelperLibrary
             Regex inputRetRegexPl = new Regex(wej + @"\d*" + @"[\s\S]*" + cof, regexOptions);
             Regex inputRetRegexPl2 = new Regex(wej + @"\d*" + @"[\s\S]*" + "Otw" + @"[\s\S]*", regexOptions);
             Regex inputRetRegexLast = new Regex("I_" + @"[\s\S]*" + @"Y\d*" + @"[\s\S]*", regexOptions);
+            Regex inputRetRegexSomfy = new Regex(@"I_Sil[\s\S]*\d{0,3}Y\d{0,3}Cof[\s\S]*", regexOptions);
 
             Regex inputExtRegex = new Regex(input + @"\d*" + extend + @"[\s\S]*", regexOptions);
             Regex inputExtRegex2 = new Regex(input + @"\d*" + @"[\s\S]*" + extend, regexOptions);
             Regex inputExtRegexPl = new Regex(wej + @"\d*" + @"[\s\S]*" + wys, regexOptions);
             Regex inputExtRegexPl2 = new Regex(wej + @"\d*" + @"[\s\S]*" + "Zam" + @"[\s\S]*", regexOptions);
             Regex inputExtRegexLast = new Regex("I_" + @"[\s\S]*" + @"Y\d*" + @"[\s\S]*", regexOptions);
+            Regex inputExtRegexSomfy = new Regex(@"I_Sil[\s\S]*\d{0,3}Y\d{0,3}Wys[\s\S]*", regexOptions);
 
             Regex outputRetRegex = new Regex(output + @"[\s\S]*Y\d{1,3}_" + retract + @"[\s\S]*", regexOptions);
             Regex outputRetRegex2 = new Regex(output + @"[\s\S]*Y\d{1,3}" + @"[\s\S]*" + retract + @"[\s\S]*", regexOptions);
             Regex outputRetRegexPl = new Regex(output + @"[\s\S]*Y\d{1,3}_" + cof + @"[\s\S]*", regexOptions);
+            Regex outputRetRegexSomfy = new Regex(@"\d{0,3}Y\d{0,3}" + retract, regexOptions);
 
             Regex outputExtRegex = new Regex(output + @"[\s\S]*Y\d{1,3}_" + extend + @"[\s\S]*", regexOptions);
             Regex outputExtRegex2 = new Regex(output + @"[\s\S]*Y\d{1,3}" + @"[\s\S]*" + extend + @"[\s\S]*", regexOptions);
             Regex outputExtRegexPl = new Regex(output + @"[\s\S]*Y\d{1,3}_" + wys + @"[\s\S]*", regexOptions);
+            Regex outputExtRegexSomfy = new Regex(@"\d{0,3}Y\d{0,3}" + extend, regexOptions);
 
             // Input retract
             foreach (PlcTag tag in tags)
@@ -557,21 +561,25 @@ namespace TiaHelperLibrary
                 if (TryAssignTag(inputRetRegex2, tag, actuators, EnumActTag.InputRet)) continue;
                 if (TryAssignTag(inputRetRegexPl, tag, actuators, EnumActTag.InputRet)) continue;
                 if (TryAssignTag(inputRetRegexPl2, tag, actuators, EnumActTag.InputRet)) continue;
+                if (TryAssignTag(inputRetRegexSomfy, tag, actuators, EnumActTag.InputRet)) continue;
 
                 if (TryAssignTag(inputExtRegex, tag, actuators, EnumActTag.InputExt)) continue;
                 if (TryAssignTag(inputExtRegex2, tag, actuators, EnumActTag.InputExt)) continue;
                 if (TryAssignTag(inputExtRegexPl, tag, actuators, EnumActTag.InputExt)) continue;
                 if (TryAssignTag(inputExtRegexPl2, tag, actuators, EnumActTag.InputExt)) continue;
+                if (TryAssignTag(inputExtRegexSomfy, tag, actuators, EnumActTag.InputRet)) continue;
 
                 // Outputs
                 //
                 if (TryAssignTag(outputRetRegex, tag, actuators, EnumActTag.OutputRet)) continue;
                 if (TryAssignTag(outputRetRegex2, tag, actuators, EnumActTag.OutputRet)) continue;
                 if (TryAssignTag(outputRetRegexPl, tag, actuators, EnumActTag.OutputRet)) continue;
+                if (TryAssignTag(outputRetRegexSomfy, tag, actuators, EnumActTag.InputRet)) continue;
 
                 if (TryAssignTag(outputExtRegex, tag, actuators, EnumActTag.OutputExt)) continue;
                 if (TryAssignTag(outputExtRegex2, tag, actuators, EnumActTag.OutputExt)) continue;
                 if (TryAssignTag(outputExtRegexPl, tag, actuators, EnumActTag.OutputExt)) continue;
+                if (TryAssignTag(outputExtRegexSomfy, tag, actuators, EnumActTag.InputRet)) continue;
 
                 // Inputs not precise
                 //
